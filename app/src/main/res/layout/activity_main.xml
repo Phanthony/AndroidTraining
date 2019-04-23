@@ -1,34 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#FF2B2B2B"
+        android:paddingLeft="40dp"
         tools:context=".MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:theme="@style/AppTheme.AppBarOverlay">
-
-        <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/AppTheme.PopupOverlay"/>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <include layout="@layout/content_main"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab"
+    <TextView
+            android:id="@+id/WelcomeTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@android:drawable/ic_dialog_email"/>
+            android:textSize="36sp"
+            android:textColor="#DEFFFFFF"
+            android:text="Welcome!"
+            android:paddingTop="130dp"
+            android:fontFamily="@font/roboto_bold"
+    />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <TextView
+            android:id="@+id/nameDisplayTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="21dp"
+            android:paddingBottom="94dp"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:text="What is your name?"
+            android:layout_below="@+id/WelcomeTextView"
+            android:fontFamily="@font/roboto"
+    />
+
+    <EditText
+            android:id="@+id/UserNameEditText"
+            android:layout_width="289.1dp"
+            android:layout_height="48dp"
+            android:layout_below="@+id/nameDisplayTextView"
+            android:text="First Name"
+            android:textColor="#61FFFFFF"
+            android:textSize="16sp"
+            android:backgroundTint="#FF009688"
+            android:fontFamily="@font/roboto"
+    />
+
+    <Button
+            android:id="@+id/DoneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DONE"
+            android:textColor="#FFFFFFFF"
+            android:backgroundTint="#FF009688"
+            android:layout_below="@+id/UserNameEditText"
+            android:layout_marginTop="37dp"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/roboto_medium"
+            android:textSize="14sp"
+            android:lineSpacingExtra="16sp"
+    />
+
+
+</RelativeLayout>
