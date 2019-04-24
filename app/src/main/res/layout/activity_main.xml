@@ -43,8 +43,8 @@
             android:backgroundTint="#FF009688"
             android:fontFamily="@font/roboto"
             android:layout_below="@id/nameDisplayTextView"
-
-            android:layout_marginTop="30dp"/>
+            android:layout_centerVertical="true"
+            android:layout_marginTop="40dp"/>
 
     <Button
             android:id="@+id/DoneButton"
