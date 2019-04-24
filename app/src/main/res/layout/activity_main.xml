@@ -3,6 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/OuterLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#FF2B2B2B"
@@ -32,6 +33,7 @@
             android:textColor="#DEFFFFFF"
             android:text="Welcome!"
             app:layout_constraintTop_toBottomOf="@id/TwentyPGuide"
+            app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
             android:fontFamily="@font/roboto_bold"
     />
 
@@ -43,6 +45,7 @@
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:text="What is your name?"
+            app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
             app:layout_constraintTop_toBottomOf="@id/WelcomeTextView"
             android:fontFamily="@font/roboto"
     />
