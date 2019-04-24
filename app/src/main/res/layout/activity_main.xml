@@ -6,7 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#FF2B2B2B"
-        android:paddingLeft="40dp"
+        android:paddingHorizontal="40dp"
         tools:context=".MainActivity">
 
     <TextView
@@ -16,7 +16,7 @@
             android:textSize="36sp"
             android:textColor="#DEFFFFFF"
             android:text="Welcome!"
-            android:paddingTop="130dp"
+            android:layout_marginTop="130dp"
             android:fontFamily="@font/roboto_bold"
     />
 
@@ -24,8 +24,7 @@
             android:id="@+id/nameDisplayTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="21dp"
-            android:paddingBottom="94dp"
+            android:layout_marginTop="21dp"
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:text="What is your name?"
@@ -35,15 +34,17 @@
 
     <EditText
             android:id="@+id/UserNameEditText"
-            android:layout_width="289.1dp"
-            android:layout_height="48dp"
-            android:layout_below="@+id/nameDisplayTextView"
-            android:text="First Name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="First Name"
+            android:textColorHint="#61FFFFFF"
             android:textColor="#61FFFFFF"
             android:textSize="16sp"
             android:backgroundTint="#FF009688"
             android:fontFamily="@font/roboto"
-    />
+            android:layout_below="@id/nameDisplayTextView"
+
+            android:layout_marginTop="30dp"/>
 
     <Button
             android:id="@+id/DoneButton"
@@ -58,7 +59,7 @@
             android:fontFamily="@font/roboto_medium"
             android:textSize="14sp"
             android:lineSpacingExtra="16sp"
-    />
+            android:onClick="displayName"/>
 
 
 </RelativeLayout>
