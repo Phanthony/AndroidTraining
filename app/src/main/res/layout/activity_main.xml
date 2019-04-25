@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
+        style="@style/LightBackground"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/OuterLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FF2B2B2B"
         android:paddingHorizontal="40dp"
         tools:context=".MainActivity">
     <androidx.constraintlayout.widget.Guideline
@@ -26,11 +26,11 @@
     />
 
     <TextView
+            style="@style/LightBackground"
             android:id="@+id/WelcomeTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="36sp"
-            android:textColor="#DEFFFFFF"
             android:text="Welcome!"
             app:layout_constraintTop_toBottomOf="@id/TwentyPGuide"
             app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
@@ -38,12 +38,12 @@
     />
 
     <TextView
+            style="@style/LightBackground"
             android:id="@+id/nameDisplayTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="21dp"
             android:textSize="16sp"
-            android:textColor="#FFFFFF"
             android:text="What is your name?"
             app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
             app:layout_constraintTop_toBottomOf="@id/WelcomeTextView"
@@ -51,24 +51,22 @@
     />
 
     <EditText
+            style="@style/LightTextEdit"
             android:id="@+id/UserNameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="First Name"
-            android:textColorHint="#61FFFFFF"
-            android:textColor="#61FFFFFF"
             android:textSize="16sp"
-            android:backgroundTint="#FF009688"
+
             android:fontFamily="@font/roboto"
             app:layout_constraintTop_toBottomOf="@id/FifteenPGuide"/>
 
     <Button
+            style="@style/LightButtons"
             android:id="@+id/DoneButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="DONE"
-            android:textColor="#FFFFFFFF"
-            android:backgroundTint="#FF009688"
             app:layout_constraintTop_toBottomOf="@+id/UserNameEditText"
             app:layout_constraintLeft_toLeftOf="@id/UserNameEditText"
             app:layout_constraintRight_toRightOf="@id/UserNameEditText"
