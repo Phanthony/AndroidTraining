@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingHorizontal="40dp"
-        tools:context=".MainActivity">
+        tools:context=".MainActivity" tools:targetApi="o">
     <androidx.constraintlayout.widget.Guideline
             android:id="@+id/TwentyPGuide"
             android:layout_width="wrap_content"
@@ -57,7 +57,6 @@
             android:layout_height="wrap_content"
             android:hint="First Name"
             android:textSize="16sp"
-
             android:fontFamily="@font/roboto"
             app:layout_constraintTop_toBottomOf="@id/FifteenPGuide"/>
 
