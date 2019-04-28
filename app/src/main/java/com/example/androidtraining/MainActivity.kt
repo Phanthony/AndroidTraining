@@ -20,22 +20,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://pokeapi.co/api/v2/")
+            .baseUrl("https://api.github.com")
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
 
-        val service = retrofit.create(PokemonApi::class.java)
-        val result = service.getPokemon("charizard")
+        val service = retrofit.create(GitHubApi::class.java)
+        val result = service.getRepo()
 
-        result.enqueue(object : Callback<PokemonData>{
-            override fun onFailure(call: Call<PokemonData>, t: Throwable) {
+        result.enqueue(object : Callback<GitHubRepoList>{
+            override fun onFailure(call: Call<GitHubRepoList>, t: Throwable) {
                 print(t.message)
             }
 
-            override fun onResponse(call: Call<PokemonData>, response: Response<PokemonData>) {
+            override fun onResponse(call: Call<GitHubRepoList>, response: Response<GitHubRepoList>) {
                 if(response.body() != null){
                     val test = response.body()!!
-                    Log.i("Pokemon Information","NAME = ${test.name}, ID = ${test.id}, WEIGHT = ${test.weight}")
+                    for (i in test.items) {
+                        Log.i("GitHub Repo", "NAME = ${i.name}, STARS = ${i.stargazers_count}")
+                    }
                 }
             }
 
