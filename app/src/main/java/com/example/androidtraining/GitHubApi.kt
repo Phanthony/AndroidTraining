@@ -6,7 +6,7 @@ import retrofit2.http.Path
 
 interface GitHubApi {
 
-    @GET("repositories?language=kotlin&since=daily")
+    @GET("repositories?language=kotlin&since=weekly")
     fun getRepo(): Call<List<GitHubRepo>>
 
 }

@@ -2,22 +2,24 @@ package com.example.androidtraining
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import android.view.View
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.*
-
 import retrofit2.converter.moshi.MoshiConverterFactory
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var informationToast: Toast
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        informationToast = Toast.makeText(this,"Fetching Repos",Toast.LENGTH_LONG)
+        informationToast.show()
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://github-trending-api.now.sh/")
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         val service = retrofit.create(GitHubApi::class.java)
         val result = service.getRepo()
+        var repoList = arrayListOf<GitHubRepo>()
 
         result.enqueue(object : Callback<List<GitHubRepo>>{
             override fun onFailure(call: Call<List<GitHubRepo>>, t: Throwable) {
@@ -36,16 +39,20 @@ class MainActivity : AppCompatActivity() {
                 if(response.body() != null){
                     val test = response.body()!!
                     for (i in test) {
-                        Log.i("GitHub Repo", "${i.name} by ${i.author}. It has ${i.currentPeriodStars} stars today.")
+                        Log.i("GitHub Repo", "${i.name} by ${i.author}. It has gotten ${i.currentPeriodStars} stars recently.")
+                        repoList.add(i)
                     }
+                    updateLayout(repoList)
                 }
             }
 
         })
 
-    }
 
-    fun displayName(){
+
+    }
+/*
+    fun displayName(view: View){
         var firstName = ""
         if (UserNameEditText.text != null){
             firstName = UserNameEditText.text.toString()
@@ -58,6 +65,15 @@ class MainActivity : AppCompatActivity() {
             nameDisplayTextView.text = "What is your name?"
             WelcomeTextView.text = "Welcome!"
         }
+    }
+    */
+
+    fun updateLayout(repoList: ArrayList<GitHubRepo>){
+        val recyclerView = RepoList!!
+        val adapter = RecyclerViewAdapter(repoList)
+        recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+        recyclerView.adapter = adapter
+        informationToast.cancel()
     }
 
 

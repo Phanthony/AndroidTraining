@@ -10,19 +10,19 @@
         android:paddingHorizontal="40dp"
         tools:context=".MainActivity" tools:targetApi="o">
     <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/TwentyPGuide"
+            android:id="@+id/FivePGuide"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.2"
+            app:layout_constraintGuide_percent="0.05"
     />
 
     <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/FifteenPGuide"
+            android:id="@+id/NinetyPGuide"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.5"
+            app:layout_constraintGuide_percent="0.9"
     />
 
     <TextView
@@ -31,49 +31,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="36sp"
-            android:text="Welcome!"
-            app:layout_constraintTop_toBottomOf="@id/TwentyPGuide"
+            android:text="Kotlin Repos"
+            app:layout_constraintTop_toBottomOf="@id/FivePGuide"
             app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
+            app:layout_constraintRight_toRightOf="@id/OuterLayout"
             android:fontFamily="@font/roboto_bold"
     />
 
-    <TextView
-            style="@style/LightBackground"
-            android:id="@+id/nameDisplayTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="21dp"
-            android:textSize="16sp"
-            android:text="What is your name?"
-            app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
-            app:layout_constraintTop_toBottomOf="@id/WelcomeTextView"
-            android:fontFamily="@font/roboto"
-    />
+    <androidx.recyclerview.widget.RecyclerView
 
-    <EditText
-            style="@style/LightTextEdit"
-            android:id="@+id/UserNameEditText"
+            android:background="#fff"
+            android:id="@+id/RepoList"
+            android:layout_marginTop="20dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="First Name"
-            android:textSize="16sp"
-            android:fontFamily="@font/roboto"
-            app:layout_constraintTop_toBottomOf="@id/FifteenPGuide"/>
-
-    <Button
-            style="@style/LightButtons"
-            android:id="@+id/DoneButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="DONE"
-            app:layout_constraintTop_toBottomOf="@+id/UserNameEditText"
-            app:layout_constraintLeft_toLeftOf="@id/UserNameEditText"
-            app:layout_constraintRight_toRightOf="@id/UserNameEditText"
-            android:layout_marginTop="37dp"
-            android:layout_centerInParent="true"
-            android:fontFamily="@font/roboto_medium"
-            android:textSize="14sp"
-            android:lineSpacingExtra="16sp"
-            android:onClick="displayName"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.7"
+            app:layout_constraintTop_toBottomOf="@id/WelcomeTextView"
+            app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
+            app:layout_constraintRight_toRightOf="@id/OuterLayout"
     />
+
     </androidx.constraintlayout.widget.ConstraintLayout>

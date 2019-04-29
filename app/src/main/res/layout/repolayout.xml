@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="5dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+>
+    <RelativeLayout
+            style="@style/LightButtons"
+            android:id="@+id/RepoLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+    >
+
+        <TextView
+                android:id="@+id/RepoNameAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Author / RepoName"
+                android:textSize="24sp"
+        />
+
+        <TextView
+                android:id="@+id/RepoDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Repo Description"
+                android:textSize="14sp"
+                android:layout_below="@+id/RepoNameAuthor"
+        />
+
+
+        <TextView
+                android:id="@+id/RepoStars"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Num stars this week"
+                android:textSize="14sp"
+                android:layout_below="@+id/RepoDescription"
+        />
+
+
+
+    </RelativeLayout>
+</LinearLayout>
