@@ -20,23 +20,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.github.com")
+            .baseUrl("https://github-trending-api.now.sh/")
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
 
         val service = retrofit.create(GitHubApi::class.java)
         val result = service.getRepo()
 
-        result.enqueue(object : Callback<GitHubRepoList>{
-            override fun onFailure(call: Call<GitHubRepoList>, t: Throwable) {
-                print(t.message)
+        result.enqueue(object : Callback<List<GitHubRepo>>{
+            override fun onFailure(call: Call<List<GitHubRepo>>, t: Throwable) {
+                Log.e("Error","",t)
             }
 
-            override fun onResponse(call: Call<GitHubRepoList>, response: Response<GitHubRepoList>) {
+            override fun onResponse(call: Call<List<GitHubRepo>>, response: Response<List<GitHubRepo>>) {
                 if(response.body() != null){
                     val test = response.body()!!
-                    for (i in test.items) {
-                        Log.i("GitHub Repo", "NAME = ${i.name}, STARS = ${i.stargazers_count}")
+                    for (i in test) {
+                        Log.i("GitHub Repo", "${i.name} by ${i.author}. It has ${i.currentPeriodStars} stars today.")
                     }
                 }
             }
@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun displayName(view: View){
+    fun displayName(){
         var firstName = ""
         if (UserNameEditText.text != null){
             firstName = UserNameEditText.text.toString()
