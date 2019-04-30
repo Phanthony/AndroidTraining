@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.*
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -13,11 +14,13 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 class MainActivity : AppCompatActivity() {
 
     lateinit var informationToast: Toast
+    lateinit var repoSwipeRefresh: SwipeRefreshLayout
+    var repoList = arrayListOf<GitHubRepo>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        repoSwipeRefresh = RecycleViewSwipeRefresh
         informationToast = Toast.makeText(this,"Fetching Repos",Toast.LENGTH_LONG)
         informationToast.show()
 
@@ -28,7 +31,6 @@ class MainActivity : AppCompatActivity() {
 
         val service = retrofit.create(GitHubApi::class.java)
         val result = service.getRepo()
-        var repoList = arrayListOf<GitHubRepo>()
 
         result.enqueue(object : Callback<List<GitHubRepo>>{
             override fun onFailure(call: Call<List<GitHubRepo>>, t: Throwable) {
@@ -48,6 +50,12 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+        repoSwipeRefresh.setOnRefreshListener {
+            informationToast = Toast.makeText(this@MainActivity,"Fetching Repos",Toast.LENGTH_LONG)
+            informationToast.show()
+            repoList.clear()
+            callRepos(result)
+        }
 
 
     }
@@ -74,6 +82,27 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         recyclerView.adapter = adapter
         informationToast.cancel()
+        repoSwipeRefresh.isRefreshing = false
+    }
+
+    fun callRepos(call:Call<List<GitHubRepo>>){
+        call.clone().enqueue(object : Callback<List<GitHubRepo>>{
+            override fun onFailure(call: Call<List<GitHubRepo>>, t: Throwable) {
+                Log.e("Error","",t)
+            }
+
+            override fun onResponse(call: Call<List<GitHubRepo>>, response: Response<List<GitHubRepo>>) {
+                if(response.body() != null){
+                    val test = response.body()!!
+                    for (i in test) {
+                        Log.i("GitHub Repo", "${i.name} by ${i.author}. It has gotten ${i.currentPeriodStars} stars recently.")
+                        repoList.add(i)
+                    }
+                    updateLayout(repoList)
+                }
+            }
+
+        })
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.androidtraining
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +31,16 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>) : Recycle
         holder.repoDesc.text = currentRepo.description
         holder.repoStars.text = currentRepo.currentPeriodStars.toString() + " stars recently"
         holder.repoName.text = "${currentRepo.author} / ${currentRepo.name}"
+    }
+
+    fun clear(){
+        repoList.clear()
+        Log.i("Update","Cleared Data Set")
+    }
+
+    fun addAll(list :ArrayList<GitHubRepo>){
+        repoList.addAll(list)
+        Log.i("Update","Updated Data Set")
     }
 
 

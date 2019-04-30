@@ -17,14 +17,6 @@
             app:layout_constraintGuide_percent="0.05"
     />
 
-    <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/NinetyPGuide"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.9"
-    />
-
     <TextView
             style="@style/LightBackground"
             android:id="@+id/WelcomeTextView"
@@ -38,17 +30,23 @@
             android:fontFamily="@font/roboto_bold"
     />
 
-    <androidx.recyclerview.widget.RecyclerView
-
-            android:background="#fff"
-            android:id="@+id/RepoList"
-            android:layout_marginTop="20dp"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/RecycleViewSwipeRefresh"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginTop="20dp"
             app:layout_constraintHeight_percent="0.7"
             app:layout_constraintTop_toBottomOf="@id/WelcomeTextView"
             app:layout_constraintLeft_toLeftOf="@id/OuterLayout"
-            app:layout_constraintRight_toRightOf="@id/OuterLayout"
-    />
+            app:layout_constraintRight_toRightOf="@id/OuterLayout">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.recyclerview.widget.RecyclerView
+                android:background="#fff"
+                android:id="@+id/RepoList"
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+        />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
