@@ -29,7 +29,11 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>) : Recycle
         val currentRepo = repoList[position]
 
         holder.repoDesc.text = currentRepo.description
-        holder.repoStars.text = currentRepo.currentPeriodStars.toString() + " stars recently"
+        if(currentRepo.currentPeriodStars == 1){
+            holder.repoStars.text = currentRepo.currentPeriodStars.toString() + " star this week"}
+        else{
+            holder.repoStars.text = currentRepo.currentPeriodStars.toString() + " stars this week"
+        }
         holder.repoName.text = "${currentRepo.author} / ${currentRepo.name}"
     }
 
