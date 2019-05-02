@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var lastRefreshed: String
     lateinit var currentTime: String
     var timeFormat = SimpleDateFormat("k:m")
-    val adapter = RecyclerViewAdapter(arrayListOf())
+    val adapter = RecyclerViewAdapter(arrayListOf(),this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,7 +92,9 @@ class MainActivity : AppCompatActivity() {
                     val test = response.body()!!
                     for (i in test) {
                         Log.i("GitHub Repo", "${i.name} by ${i.author}. It has gotten ${i.currentPeriodStars} stars recently.")
-                        adapter.add(i)
+                        if (i.currentPeriodStars>0) {
+                            adapter.add(i)
+                        }
                     }
                     adapter.notifyDataSetChanged()
                     updateLayout()
