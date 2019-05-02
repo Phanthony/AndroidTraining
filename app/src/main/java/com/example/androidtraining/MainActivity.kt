@@ -3,7 +3,6 @@ package com.example.androidtraining
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,13 +16,12 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var informationToast: Toast
-    lateinit var repoSwipeRefresh: SwipeRefreshLayout
-    var repoList = arrayListOf<GitHubRepo>()
+    private lateinit var informationToast: Toast
+    private lateinit var repoSwipeRefresh: SwipeRefreshLayout
     lateinit var lastRefreshed: String
     lateinit var currentTime: String
     var timeFormat = SimpleDateFormat("k:m")
-    var getTimeChecker = true
+    val adapter = RecyclerViewAdapter(arrayListOf())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +29,9 @@ class MainActivity : AppCompatActivity() {
         repoSwipeRefresh = RecycleViewSwipeRefresh
         informationToast = Toast.makeText(this,"Fetching Repos",Toast.LENGTH_LONG)
         informationToast.show()
+
+        ToolBar.title = "Daily Trending Kotlin Repos"
+        setSupportActionBar(ToolBar)
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://github-trending-api.now.sh/")
@@ -40,37 +41,23 @@ class MainActivity : AppCompatActivity() {
         val service = retrofit.create(GitHubApi::class.java)
         val result = service.getRepo()
 
-        result.enqueue(object : Callback<List<GitHubRepo>>{
-            override fun onFailure(call: Call<List<GitHubRepo>>, t: Throwable) {
-                Log.e("Error","",t)
-            }
+        RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+        RepoList.adapter = adapter
 
-            override fun onResponse(call: Call<List<GitHubRepo>>, response: Response<List<GitHubRepo>>) {
-                if(response.body() != null){
-                    val test = response.body()!!
-                    for (i in test) {
-                        Log.i("GitHub Repo", "${i.name} by ${i.author}. It has gotten ${i.currentPeriodStars} stars recently.")
-                        repoList.add(i)
-                    }
-                    updateLayout(repoList)
-                }
-            }
-        })
-
+        callRepos(result)
         lastRefreshed = getTime()
 
         val timeHandler = Handler()
-
         val timeRunnable = object : Runnable {
             override fun run(){
-                if (getTimeChecker){
-                    currentTime = getTime()
-                }
+                currentTime = getTime()
                 val minutesPassed = timePassed(lastRefreshed,getTime())
-                when(minutesPassed){
-                    1 -> TextViewRefreshTime.text = "$minutesPassed minute since the last refresh"
-                    else -> TextViewRefreshTime.text = "$minutesPassed minutes since the last refresh"
+                val textToBe:String
+                textToBe = when(minutesPassed){
+                    1 -> getString(R.string.minutesPassedSinceRefresh).format("$minutesPassed","")
+                    else -> getString(R.string.minutesPassedSinceRefresh).format("$minutesPassed","s")
                 }
+                TextViewRefreshTime.text = textToBe
                 timeHandler.postDelayed(this,60000)
             }
         }
@@ -80,19 +67,16 @@ class MainActivity : AppCompatActivity() {
         repoSwipeRefresh.setOnRefreshListener {
             informationToast = Toast.makeText(this@MainActivity,"Fetching Repos",Toast.LENGTH_LONG)
             informationToast.show()
-            repoList.clear()
+            adapter.clear()
+            adapter.notifyDataSetChanged()
             callRepos(result)
-            TextViewRefreshTime.text = "0 minutes since the last refresh"
+            TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0","s")
             lastRefreshed = getTime()
 
         }
 
     }
-    fun updateLayout(repoList: ArrayList<GitHubRepo>){
-        val recyclerView = RepoList!!
-        val adapter = RecyclerViewAdapter(repoList)
-        recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
-        recyclerView.adapter = adapter
+    fun updateLayout(){
         informationToast.cancel()
         repoSwipeRefresh.isRefreshing = false
     }
@@ -108,25 +92,26 @@ class MainActivity : AppCompatActivity() {
                     val test = response.body()!!
                     for (i in test) {
                         Log.i("GitHub Repo", "${i.name} by ${i.author}. It has gotten ${i.currentPeriodStars} stars recently.")
-                        repoList.add(i)
+                        adapter.add(i)
                     }
-                    updateLayout(repoList)
+                    adapter.notifyDataSetChanged()
+                    updateLayout()
                 }
             }
 
         })
     }
 
-    fun getTime() = timeFormat.format(Date(System.currentTimeMillis()))
+    fun getTime() = timeFormat.format(Date(System.currentTimeMillis()))!!
 
-    fun timePassed(initial:String, current:String): Int{
-        val initialList = initial.split(":")
-        val currentList = current.split(":")
-
+    fun timePassed(initialTime:String, currentTime:String): Int{
+        val initialTimeList = initialTime.split(":")
+        val currentTimeList = currentTime.split(":")
         var minutesPassed = 0
-        val hoursPassed = currentList[0].toInt() - initialList[0].toInt()
+
+        val hoursPassed = currentTimeList[0].toInt() - initialTimeList[0].toInt()
         minutesPassed += 60*hoursPassed
-        minutesPassed += currentList[1].toInt() - initialList[1].toInt()
+        minutesPassed += currentTimeList[1].toInt() - initialTimeList[1].toInt()
         return minutesPassed
     }
 

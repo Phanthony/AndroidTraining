@@ -18,14 +18,17 @@
     >
 
         <TextView
+                style="@style/LightButtons"
                 android:id="@+id/RepoNameAuthor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Author / RepoName"
+                android:text="@string/authorAndRepoName"
                 android:textSize="24sp"
+
         />
 
         <TextView
+
                 android:id="@+id/RepoDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -39,7 +42,7 @@
                 android:id="@+id/RepoStars"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Num stars this week"
+                android:text="@string/dailyStars"
                 android:textSize="14sp"
                 android:layout_below="@+id/RepoDescription"
         />

@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Android Training</string>
     <string name="action_settings">Settings</string>
+    <string name="minutesPassedSinceRefresh">%s minute%s since the last refresh</string>
+    <string name="authorAndRepoName">%s / %s</string>
+    <string name="dailyStars">%s star%s today</string>
 </resources>

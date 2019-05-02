@@ -30,4 +30,8 @@
         <item name="android:textColorHint">#666666</item>
     </style>
 
+    <style name="RepoOB">
+
+    </style>
+
 </resources>

@@ -4,9 +4,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.repolayout.*
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.repolayout.view.*
+import java.util.*
+import android.content.res.Resources
+
 
 class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
 
@@ -28,13 +30,13 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>) : Recycle
     override fun onBindViewHolder(holder: RecyclerViewAdapter.ViewHolder, position: Int) {
         val currentRepo = repoList[position]
 
-        holder.repoDesc.text = currentRepo.description
-        if(currentRepo.currentPeriodStars == 1){
-            holder.repoStars.text = currentRepo.currentPeriodStars.toString() + " star this week"}
-        else{
-            holder.repoStars.text = currentRepo.currentPeriodStars.toString() + " stars this week"
+        val textToBe = when(currentRepo.currentPeriodStars){
+            1 -> Resources.getSystem().getString(R.string.dailyStars).format("${currentRepo.currentPeriodStars}","")
+            else -> Resources.getSystem().getString(R.string.dailyStars).format("${currentRepo.currentPeriodStars}","s")
         }
-        holder.repoName.text = "${currentRepo.author} / ${currentRepo.name}"
+        holder.repoStars.text = textToBe
+        holder.repoName.text = Resources.getSystem().getString(R.string.authorAndRepoName).format(currentRepo.author,currentRepo.name)
+        holder.repoDesc.text = currentRepo.description
     }
 
     fun clear(){
@@ -42,8 +44,8 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>) : Recycle
         Log.i("Update","Cleared Data Set")
     }
 
-    fun addAll(list :ArrayList<GitHubRepo>){
-        repoList.addAll(list)
+    fun add(item:GitHubRepo){
+        repoList.add(item)
         Log.i("Update","Updated Data Set")
     }
 
