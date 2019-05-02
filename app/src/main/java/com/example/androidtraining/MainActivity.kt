@@ -26,27 +26,31 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //Set up The RecycleView with Swipe Refresh
         repoSwipeRefresh = RecycleViewSwipeRefresh
         informationToast = Toast.makeText(this,"Fetching Repos",Toast.LENGTH_LONG)
         informationToast.show()
+        RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+        RepoList.adapter = adapter
 
+        //Set up Toolbar
         ToolBar.title = "Daily Trending Kotlin Repos"
         setSupportActionBar(ToolBar)
 
+        //Set up retrofit to call the github API
         val retrofit = Retrofit.Builder()
             .baseUrl("https://github-trending-api.now.sh/")
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-
         val service = retrofit.create(GitHubApi::class.java)
         val result = service.getRepo()
 
-        RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
-        RepoList.adapter = adapter
-
+        //Get the repos and update the refresh time
         callRepos(result)
         lastRefreshed = getTime()
 
+        //Set up handler to auto update the refresh time every minute
         val timeHandler = Handler()
         val timeRunnable = object : Runnable {
             override fun run(){
@@ -61,9 +65,9 @@ class MainActivity : AppCompatActivity() {
                 timeHandler.postDelayed(this,60000)
             }
         }
-
         timeRunnable.run()
 
+        //Set up the Refresh Listener to update the recycle view
         repoSwipeRefresh.setOnRefreshListener {
             informationToast = Toast.makeText(this@MainActivity,"Fetching Repos",Toast.LENGTH_LONG)
             informationToast.show()
@@ -75,10 +79,6 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-    }
-    fun updateLayout(){
-        informationToast.cancel()
-        repoSwipeRefresh.isRefreshing = false
     }
 
     private fun callRepos(call:Call<List<GitHubRepo>>){
@@ -97,7 +97,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     adapter.notifyDataSetChanged()
-                    updateLayout()
+                    informationToast.cancel()
+                    repoSwipeRefresh.isRefreshing = false
                 }
             }
 
