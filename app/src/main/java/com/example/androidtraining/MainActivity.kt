@@ -1,17 +1,21 @@
 package com.example.androidtraining
 
-import android.os.Build
+import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.synthetic.main.activity_main.*
-import retrofit2.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -22,8 +26,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var informationToast: Toast
     private lateinit var repoSwipeRefresh: SwipeRefreshLayout
-    lateinit var lastRefreshed: String
     lateinit var currentTime: String
+    var lastRefreshed= getTime()
     var timeFormat = SimpleDateFormat("k:m", Locale.US)
     val adapter = RecyclerViewAdapter(arrayListOf(),this)
     private val dateFormat = DateTimeFormatter.ofPattern("yyyy-mm-dd")!!
@@ -53,7 +57,6 @@ class MainActivity : AppCompatActivity() {
 
         //Get the repos and update the refresh time
         callRepos(result)
-        lastRefreshed = getTime()
 
         //Set up handler to auto update the refresh time every minute
         val timeHandler = Handler()
@@ -79,7 +82,8 @@ class MainActivity : AppCompatActivity() {
             adapter.clear()
             adapter.notifyDataSetChanged()
             callRepos(result)
-            TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0","s")
+            val timePassed = timePassed(lastRefreshed,getTime())
+            TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("$timePassed","s")
             lastRefreshed = getTime()
 
         }
@@ -89,7 +93,10 @@ class MainActivity : AppCompatActivity() {
     private fun callRepos(call:Call<GitHubRepoList>){
         call.clone().enqueue(object : Callback<GitHubRepoList>{
             override fun onFailure(call: Call<GitHubRepoList>, t: Throwable) {
-                Log.e("Error","",t)
+                Log.e("Network Error","",t)
+                val dialog = networkDialog(this@MainActivity)
+                dialog.show()
+                repoSwipeRefresh.isRefreshing = false
             }
 
             override fun onResponse(call: Call<GitHubRepoList>, response: Response<GitHubRepoList>) {
@@ -104,7 +111,6 @@ class MainActivity : AppCompatActivity() {
                     repoSwipeRefresh.isRefreshing = false
                 }
             }
-
         })
     }
 
@@ -121,6 +127,15 @@ class MainActivity : AppCompatActivity() {
         minutesPassed += 60*hoursPassed
         minutesPassed += currentTimeList[1].toInt() - initialTimeList[1].toInt()
         return minutesPassed
+    }
+
+    fun networkDialog(context: Context) : AlertDialog.Builder{
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Error")
+        builder.setMessage("A network failure occurred")
+        builder.setPositiveButton("Ok") { _: DialogInterface?, _: Int ->
+        }
+        return builder
     }
 
 
