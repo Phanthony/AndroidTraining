@@ -27,12 +27,12 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,private va
 
     override fun onBindViewHolder(holder: RecyclerViewAdapter.ViewHolder, position: Int) {
         val currentRepo = repoList[position]
-        val textToBe = when(currentRepo.currentPeriodStars){
-            1 -> context.getString(R.string.dailyStars).format("${currentRepo.currentPeriodStars}","")
-            else ->  context.getString(R.string.dailyStars).format("${currentRepo.currentPeriodStars}","s")
+        val textToBe = when(currentRepo.stargazers_count){
+            1 -> context.getString(R.string.dailyStars).format("${currentRepo.stargazers_count}","")
+            else ->  context.getString(R.string.dailyStars).format("${currentRepo.stargazers_count}","s")
         }
         holder.repoStars.text = textToBe
-        holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.author,currentRepo.name)
+        holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.owner.login,currentRepo.name)
         holder.repoDesc.text = currentRepo.description
     }
 

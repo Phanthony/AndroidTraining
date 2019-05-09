@@ -1,9 +1,11 @@
 package com.example.androidtraining
 
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +14,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.*
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -20,8 +24,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var repoSwipeRefresh: SwipeRefreshLayout
     lateinit var lastRefreshed: String
     lateinit var currentTime: String
-    var timeFormat = SimpleDateFormat("k:m")
+    var timeFormat = SimpleDateFormat("k:m", Locale.US)
     val adapter = RecyclerViewAdapter(arrayListOf(),this)
+    private val dateFormat = DateTimeFormatter.ofPattern("yyyy-mm-dd")!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,11 +45,11 @@ class MainActivity : AppCompatActivity() {
 
         //Set up retrofit to call the github API
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://github-trending-api.now.sh/")
+            .baseUrl("https://api.github.com")
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
         val service = retrofit.create(GitHubApi::class.java)
-        val result = service.getRepo()
+        val result = service.getRepo(getYesterday())
 
         //Get the repos and update the refresh time
         callRepos(result)
@@ -81,20 +86,18 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun callRepos(call:Call<List<GitHubRepo>>){
-        call.clone().enqueue(object : Callback<List<GitHubRepo>>{
-            override fun onFailure(call: Call<List<GitHubRepo>>, t: Throwable) {
+    private fun callRepos(call:Call<GitHubRepoList>){
+        call.clone().enqueue(object : Callback<GitHubRepoList>{
+            override fun onFailure(call: Call<GitHubRepoList>, t: Throwable) {
                 Log.e("Error","",t)
             }
 
-            override fun onResponse(call: Call<List<GitHubRepo>>, response: Response<List<GitHubRepo>>) {
+            override fun onResponse(call: Call<GitHubRepoList>, response: Response<GitHubRepoList>) {
                 if(response.body() != null){
                     val test = response.body()!!
-                    for (i in test) {
-                        Log.i("GitHub Repo", "${i.name} by ${i.author}. It has gotten ${i.currentPeriodStars} stars recently.")
-                        if (i.currentPeriodStars>0) {
+                    for (i in test.items) {
+                        Log.i("GitHub Repo", "${i.name} by ${i.owner.login}. It has gotten ${i.stargazers_count} stars recently.")
                             adapter.add(i)
-                        }
                     }
                     adapter.notifyDataSetChanged()
                     informationToast.cancel()
@@ -106,6 +109,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getTime() = timeFormat.format(Date(System.currentTimeMillis()))!!
+
+    private fun getYesterday() = LocalDate.now().minusDays(1).format(dateFormat)!!
 
     fun timePassed(initialTime:String, currentTime:String): Int{
         val initialTimeList = initialTime.split(":")
