@@ -18,7 +18,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.text.SimpleDateFormat
-import java.time.LocalDate
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -27,14 +27,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var informationToast: Toast
     private lateinit var repoSwipeRefresh: SwipeRefreshLayout
     lateinit var currentTime: String
-    var lastRefreshed= getTime()
-    var timeFormat = SimpleDateFormat("k:m", Locale.US)
+    var lastRefreshed = getTime()
+    lateinit var timeFormat: DateTimeFormatter
     val adapter = RecyclerViewAdapter(arrayListOf(),this)
-    private val dateFormat = DateTimeFormatter.ofPattern("yyyy-mm-dd")!!
+    lateinit var dateFormat: DateTimeFormatter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        //timeFormat = DateTimeFormatter.ofPattern("k:m")
 
         //Set up The RecycleView with Swipe Refresh
         repoSwipeRefresh = RecycleViewSwipeRefresh
@@ -43,17 +46,19 @@ class MainActivity : AppCompatActivity() {
         RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         RepoList.adapter = adapter
 
+
         //Set up Toolbar
         ToolBar.title = "Daily Trending Kotlin Repos"
         setSupportActionBar(ToolBar)
 
         //Set up retrofit to call the github API
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.github.com")
+            .baseUrl("https://api.github.com/")
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
         val service = retrofit.create(GitHubApi::class.java)
-        val result = service.getRepo(getYesterday())
+        val result = service.getRepo("created:%3E${getYesterday()}+language:kotlin+stars:%3E0")
+        Log.i("Qis","created:>${getYesterday()}+language:kotlin+stars:>0")
 
         //Get the repos and update the refresh time
         callRepos(result)
@@ -114,9 +119,20 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun getTime() = timeFormat.format(Date(System.currentTimeMillis()))!!
+    fun getTime() = (DateTimeFormatter.ofPattern("k:m")
+        .withLocale(Locale.US)
+        .withZone(ZoneId.systemDefault()))
+        .format(Instant.now())
 
-    private fun getYesterday() = LocalDate.now().minusDays(1).format(dateFormat)!!
+    private fun getYesterday():String{
+        val test=
+        (DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            .withLocale(Locale.US)
+            .withZone(ZoneId.systemDefault()))
+            .format(Instant.now().minus(Duration.ofDays(1)))
+        return test
+    }
+
 
     fun timePassed(initialTime:String, currentTime:String): Int{
         val initialTimeList = initialTime.split(":")
