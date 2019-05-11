@@ -8,9 +8,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.repolayout.view.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 
-class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
+class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>, private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         val repoName = itemView.RepoNameAuthor!!
@@ -45,6 +46,12 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,private va
         repoList.add(item)
         Log.i("Update","Updated Data Set")
     }
+
+    fun addAll(list:ArrayList<GitHubRepo>){
+        repoList.addAll(list)
+    }
+
+    fun getList() = repoList
 
 
 }

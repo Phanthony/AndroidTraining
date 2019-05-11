@@ -26,23 +26,17 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var informationToast: Toast
     private lateinit var repoSwipeRefresh: SwipeRefreshLayout
-    lateinit var currentTime: String
-    var lastRefreshed = getTime()
-    lateinit var timeFormat: DateTimeFormatter
+    lateinit var lastRefreshed: String
     val adapter = RecyclerViewAdapter(arrayListOf(),this)
-    lateinit var dateFormat: DateTimeFormatter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        //timeFormat = DateTimeFormatter.ofPattern("k:m")
 
         //Set up The RecycleView with Swipe Refresh
         repoSwipeRefresh = RecycleViewSwipeRefresh
-        informationToast = Toast.makeText(this,"Fetching Repos",Toast.LENGTH_LONG)
-        informationToast.show()
+
         RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         RepoList.adapter = adapter
 
@@ -61,13 +55,20 @@ class MainActivity : AppCompatActivity() {
         Log.i("Qis","created:>${getYesterday()}+language:kotlin+stars:>0")
 
         //Get the repos and update the refresh time
-        callRepos(result)
+         if (savedInstanceState == null) {
+             informationToast = Toast.makeText(this, "Fetching Repos", Toast.LENGTH_LONG)
+             informationToast.show()
+             callRepos(result)
+             lastRefreshed = getTime()
+         }
+        else{
+             lastRefreshed = savedInstanceState.getString("lastRefresh")!!
+         }
 
         //Set up handler to auto update the refresh time every minute
         val timeHandler = Handler()
         val timeRunnable = object : Runnable {
             override fun run(){
-                currentTime = getTime()
                 val minutesPassed = timePassed(lastRefreshed,getTime())
                 val textToBe:String
                 textToBe = when(minutesPassed){
@@ -87,8 +88,7 @@ class MainActivity : AppCompatActivity() {
             adapter.clear()
             adapter.notifyDataSetChanged()
             callRepos(result)
-            val timePassed = timePassed(lastRefreshed,getTime())
-            TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("$timePassed","s")
+            TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0","s")
             lastRefreshed = getTime()
 
         }
@@ -119,20 +119,23 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun getTime() = (DateTimeFormatter.ofPattern("k:m")
-        .withLocale(Locale.US)
-        .withZone(ZoneId.systemDefault()))
-        .format(Instant.now())
+    fun getTime():String {
+        val time =
+        (DateTimeFormatter.ofPattern("k:m")
+            .withLocale(Locale.US)
+            .withZone(ZoneId.systemDefault()))
+            .format(Instant.now())
+        return time
+    }
 
     private fun getYesterday():String{
-        val test=
+        val day =
         (DateTimeFormatter.ofPattern("yyyy-MM-dd")
             .withLocale(Locale.US)
             .withZone(ZoneId.systemDefault()))
             .format(Instant.now().minus(Duration.ofDays(1)))
-        return test
+        return day
     }
-
 
     fun timePassed(initialTime:String, currentTime:String): Int{
         val initialTimeList = initialTime.split(":")
@@ -154,5 +157,14 @@ class MainActivity : AppCompatActivity() {
         return builder
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putString("lastRefresh",lastRefreshed)
+        outState?.putParcelableArrayList("repoList",adapter.getList())
+    }
 
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        adapter.addAll(savedInstanceState?.getParcelableArrayList<GitHubRepo>("repoList")!!)
+    }
 }
