@@ -2,8 +2,6 @@ package com.example.androidtraining
 
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.versionedparcelable.VersionedParcelize
-
 
 class GitHubRepo(var name: String, var owner: GitHubRepoOwner, var stargazers_count: Int, var description: String) :
     Parcelable {
