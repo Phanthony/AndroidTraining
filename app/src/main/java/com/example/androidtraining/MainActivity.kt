@@ -40,13 +40,16 @@ class MainActivity : AppCompatActivity() {
             if (errorCode == 1){
                 Log.e("Error","Network Call Unsuccessful")
                 networkDialog(this@MainActivity).show()
+                informationToast.cancel()
+                repoSwipeRefresh.isRefreshing = false
             }
             else if (errorCode == 2){
                 Log.i("Update","Network Call Successful")
                 TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0", "s")
+                informationToast.cancel()
+                repoSwipeRefresh.isRefreshing = false
             }
-            informationToast.cancel()
-            repoSwipeRefresh.isRefreshing = false
+
 
         })
         gitHubViewModel.getMinSinceLastRefresh().observe(this, Observer<Int> { t ->
