@@ -1,10 +1,12 @@
 package com.example.androidtraining
 
+import android.app.Application
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Handler
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,16 +23,15 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
-class GitHubViewModel : ViewModel() {
+class GitHubViewModel(application: Application) : AndroidViewModel(application) {
 
-    private var repoList = MutableLiveData<ArrayList<GitHubRepo>>()
     private var lastRefreshed = getTime()
     private var minSinceLastRefresh = MutableLiveData<Int>()
-    private val gitHubRepository = com.example.androidtraining.GitHubRepository()
+    private val gitHubRepository = com.example.androidtraining.GitHubRepository(application)
     private var networkError = MutableLiveData<Int>()
+    private var repoList: LiveData<List<GitHubRepo>> = gitHubRepository.getAllRepos()
 
     init {
-        repoList.value = arrayListOf()
         networkError.value = 0
         getRepos()
 
@@ -44,10 +45,11 @@ class GitHubViewModel : ViewModel() {
             }
         }
             .run()
+
     }
 
     fun getRepos(){
-        gitHubRepository.callRepos(repoList, networkError)
+        gitHubRepository.callRepos(networkError)
         networkError.value = 0
     }
 
@@ -55,7 +57,7 @@ class GitHubViewModel : ViewModel() {
         return networkError
     }
 
-    fun getRepoList(): LiveData<ArrayList<GitHubRepo>>{
+    fun getRepoList(): LiveData<List<GitHubRepo>>{
         return repoList
     }
 

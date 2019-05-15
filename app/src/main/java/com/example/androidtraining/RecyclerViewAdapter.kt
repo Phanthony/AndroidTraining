@@ -7,11 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.repolayout.view.*
-import java.util.*
 import kotlin.collections.ArrayList
 
 
-class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>, private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
+class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
+                          private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         val repoName = itemView.RepoNameAuthor!!
@@ -28,30 +28,29 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>, private v
 
     override fun onBindViewHolder(holder: RecyclerViewAdapter.ViewHolder, position: Int) {
         val currentRepo = repoList[position]
-        val textToBe = when(currentRepo.stargazers_count){
-            1 -> context.getString(R.string.dailyStars).format("${currentRepo.stargazers_count}","")
-            else ->  context.getString(R.string.dailyStars).format("${currentRepo.stargazers_count}","s")
+        val textToBe = when(currentRepo.getStargazers_count()){
+            1 -> context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","")
+            else ->  context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","s")
         }
         holder.repoStars.text = textToBe
-        holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.owner.login,currentRepo.name)
-        holder.repoDesc.text = currentRepo.description
+        holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.getOwner().login,currentRepo.getName())
+        holder.repoDesc.text = currentRepo.getDescription()
     }
 
     fun clear(){
         repoList.clear()
         Log.i("Update","Cleared Data Set")
+        notifyDataSetChanged()
     }
 
     fun add(item:GitHubRepo){
         repoList.add(item)
         Log.i("Update","Updated Data Set")
+        notifyDataSetChanged()
     }
 
-    fun addAll(list:ArrayList<GitHubRepo>){
+    fun addAll(list:List<GitHubRepo>){
         repoList.addAll(list)
+        notifyDataSetChanged()
     }
-
-    fun getList() = repoList
-
-
 }
