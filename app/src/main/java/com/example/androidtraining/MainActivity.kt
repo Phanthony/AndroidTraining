@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
 

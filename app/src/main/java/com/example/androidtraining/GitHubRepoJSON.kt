@@ -1,9 +1,9 @@
 package com.example.androidtraining
 
-import android.os.Parcel
-import android.os.Parcelable
-import androidx.room.*
-import org.jetbrains.annotations.Nullable
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "Repo_Table")
 data class GitHubRepo(@ColumnInfo(name = "repoTitle") private var name: String,

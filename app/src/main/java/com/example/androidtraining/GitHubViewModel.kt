@@ -1,27 +1,15 @@
 package com.example.androidtraining
 
 import android.app.Application
-import android.content.Context
-import android.content.DialogInterface
 import android.os.Handler
-import android.util.Log
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import kotlinx.android.synthetic.main.activity_main.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import java.time.Duration
+import kotlinx.coroutines.GlobalScope
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.collections.ArrayList
 
 class GitHubViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -29,7 +17,7 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
     private var minSinceLastRefresh = MutableLiveData<Int>()
     private val gitHubRepository = com.example.androidtraining.GitHubRepository(application)
     private var networkError = MutableLiveData<Int>()
-    private var repoList: LiveData<List<GitHubRepo>> = gitHubRepository.getAllRepos()
+    private var repoList = gitHubRepository.getAllRepos()
 
     init {
         networkError.value = 0
