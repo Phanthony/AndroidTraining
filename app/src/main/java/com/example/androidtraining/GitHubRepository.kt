@@ -108,4 +108,7 @@ class GitHubRepository(application: Application) {
         return dataBase?.gitHubRepoDAO()!!.getRepoCount()
     }
 
+    fun resetLastRefresh(){
+    }
+
 }

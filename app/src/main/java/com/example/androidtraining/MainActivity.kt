@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
             else if (errorCode == 2){
                 Log.i("Update","Network Call Successful")
                 TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0", "s")
+                gitHubViewModel.resetLastRefresh()
                 informationToast.cancel()
                 repoSwipeRefresh.isRefreshing = false
                 gitHubViewModel.resetNetworkError()
@@ -74,12 +75,6 @@ class MainActivity : AppCompatActivity() {
         RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         RepoList.adapter = adapter
 
-        Log.i("LiveDebug","${gitHubViewModel.getRepoList()?.value==null}")
-
-        if(gitHubViewModel.getRepoList()?.value != null) {
-            adapter.addAll(gitHubViewModel.getRepoList()?.value)
-            Log.i("LiveDebug","${gitHubViewModel.getRepoList()?.value}")
-        }
         //Set up the Refresh Listener to update the recycle view
         repoSwipeRefresh.setOnRefreshListener {
             informationToast.show()

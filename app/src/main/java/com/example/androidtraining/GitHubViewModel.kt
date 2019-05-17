@@ -79,5 +79,9 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
         gitHubRepository.resetErrorCode()
     }
 
+    fun resetLastRefresh(){
+        lastRefreshed = getTime()
+    }
+
 
 }
