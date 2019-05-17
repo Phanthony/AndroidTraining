@@ -24,7 +24,7 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
             runBlocking {
                 gitHubRepository.getLastDayFromDatabase()
             }
-            getRepos()
+            if (gitHubRepository.getRepoCount() == 0) getRepos()
         }
 
         //set up handler for constant time updates
@@ -36,7 +36,7 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
                 timeHandler.postDelayed(this,60000)
             }
         }
-            .run()
+        timeRunnable.run()
 
     }
 
@@ -68,12 +68,15 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
     fun timePassed(initialTime:String, currentTime:String): Int{
         val initialTimeList = initialTime.split(":")
         val currentTimeList = currentTime.split(":")
-        var minutesPassed = 0
 
         val hoursPassed = currentTimeList[0].toInt() - initialTimeList[0].toInt()
-        minutesPassed += 60*hoursPassed
+        var minutesPassed = 60*hoursPassed
         minutesPassed += currentTimeList[1].toInt() - initialTimeList[1].toInt()
         return minutesPassed
+    }
+
+    fun resetNetworkError(){
+        gitHubRepository.resetErrorCode()
     }
 
 

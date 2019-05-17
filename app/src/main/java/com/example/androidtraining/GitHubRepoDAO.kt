@@ -16,10 +16,13 @@ interface GitHubRepoDAO {
     fun getAllRepos(): LiveData<List<GitHubRepo>>
 
     @Query("SELECT * FROM Repo_Table WHERE repoId == :id")
-    fun findRepoByID(id: Int): GitHubRepo?
+    suspend fun findRepoByID(id: Int): GitHubRepo?
 
     @Update
     suspend fun updateRepo(gitHubRepo: GitHubRepo)
+
+    @Query("SELECT COUNT(*) FROM Repo_Table")
+    suspend fun getRepoCount(): Int
 
 
 

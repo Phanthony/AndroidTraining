@@ -19,7 +19,6 @@ import java.util.*
 class GitHubRepository(application: Application) {
 
     private var lastDay: String? = null
-
     private var errorCode = MutableLiveData<Int>()
 
     //set up database
@@ -31,11 +30,7 @@ class GitHubRepository(application: Application) {
         .build()
     private val service = retrofit.create(GitHubApi::class.java)
 
-    init {
-        errorCode.value = 0
-    }
-
-    // Error code -> 1 = Network error, 2 = Successful
+    // Error code -> 1 = Network error, 2 = Successful, 0 = default state
     fun callRepos() {
         //Check if it's a new day
         //Delete old database entries if so and update the day entry
@@ -93,9 +88,7 @@ class GitHubRepository(application: Application) {
     }
 
     suspend fun getLastDayFromDatabase(){
-        println("DEBUG!__________________!!!!!!!! $lastDay")
         lastDay = dataBase?.dayDAO()?.getDay()
-        println("DEBUG!__________________!!!!!!!! $lastDay")
     }
 
     private suspend fun insertYesterdayToDatabase(){
@@ -105,6 +98,14 @@ class GitHubRepository(application: Application) {
 
     fun getErrorCode(): LiveData<Int>{
         return errorCode
+    }
+
+    fun resetErrorCode(){
+        errorCode.value = 0
+    }
+
+    suspend fun getRepoCount(): Int{
+        return dataBase?.gitHubRepoDAO()!!.getRepoCount()
     }
 
 }

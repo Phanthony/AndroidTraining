@@ -25,10 +25,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         //set up toast to display information
         informationToast = Toast.makeText(this@MainActivity, "Fetching Repos", Toast.LENGTH_LONG)
         //set up ViewModel
         gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModel::class.java)
+
+        adapter.addAll(gitHubViewModel.getRepoList()?.value)
         //set up observers
         gitHubViewModel.getRepoList()?.observe(this, Observer<List<GitHubRepo>> { t ->
             if(t != null) {
@@ -42,12 +45,14 @@ class MainActivity : AppCompatActivity() {
                 networkDialog(this@MainActivity).show()
                 informationToast.cancel()
                 repoSwipeRefresh.isRefreshing = false
+                gitHubViewModel.resetNetworkError()
             }
             else if (errorCode == 2){
                 Log.i("Update","Network Call Successful")
                 TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0", "s")
                 informationToast.cancel()
                 repoSwipeRefresh.isRefreshing = false
+                gitHubViewModel.resetNetworkError()
             }
 
 
