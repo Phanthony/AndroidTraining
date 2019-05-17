@@ -5,7 +5,7 @@ import android.os.Handler
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -16,12 +16,16 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
     private var lastRefreshed = getTime()
     private var minSinceLastRefresh = MutableLiveData<Int>()
     private val gitHubRepository = com.example.androidtraining.GitHubRepository(application)
-    private var networkError = MutableLiveData<Int>()
     private var repoList = gitHubRepository.getAllRepos()
+    private var networkError = gitHubRepository.getErrorCode()
 
     init {
-        networkError.value = 0
-        getRepos()
+        CoroutineScope(Dispatchers.IO).launch{
+            runBlocking {
+                gitHubRepository.getLastDayFromDatabase()
+            }
+            getRepos()
+        }
 
         //set up handler for constant time updates
         val timeHandler = Handler()
@@ -36,16 +40,17 @@ class GitHubViewModel(application: Application) : AndroidViewModel(application) 
 
     }
 
+
+
     fun getRepos(){
-        gitHubRepository.callRepos(networkError)
-        networkError.value = 0
+        gitHubRepository.callRepos()
     }
 
     fun getNetworkError(): LiveData<Int>{
         return networkError
     }
 
-    fun getRepoList(): LiveData<List<GitHubRepo>>{
+    fun getRepoList(): LiveData<List<GitHubRepo>>?{
         return repoList
     }
 

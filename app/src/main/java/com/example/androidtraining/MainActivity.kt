@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         //set up ViewModel
         gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModel::class.java)
         //set up observers
-        gitHubViewModel.getRepoList().observe(this, Observer<List<GitHubRepo>> { t ->
+        gitHubViewModel.getRepoList()?.observe(this, Observer<List<GitHubRepo>> { t ->
             if(t != null) {
                 adapter.clear()
                 adapter.addAll(t)
@@ -69,6 +69,12 @@ class MainActivity : AppCompatActivity() {
         RepoList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         RepoList.adapter = adapter
 
+        Log.i("LiveDebug","${gitHubViewModel.getRepoList()?.value==null}")
+
+        if(gitHubViewModel.getRepoList()?.value != null) {
+            adapter.addAll(gitHubViewModel.getRepoList()?.value)
+            Log.i("LiveDebug","${gitHubViewModel.getRepoList()?.value}")
+        }
         //Set up the Refresh Listener to update the recycle view
         repoSwipeRefresh.setOnRefreshListener {
             informationToast.show()

@@ -49,8 +49,10 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
         notifyDataSetChanged()
     }
 
-    fun addAll(list:List<GitHubRepo>){
-        repoList.addAll(list)
-        notifyDataSetChanged()
+    fun addAll(list:List<GitHubRepo>?) {
+        if (list != null) {
+            repoList.addAll(list)
+            notifyDataSetChanged()
+        }
     }
 }
