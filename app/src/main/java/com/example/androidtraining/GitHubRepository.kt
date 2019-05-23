@@ -1,83 +1,39 @@
 package com.example.androidtraining
 
-import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import java.io.IOException
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class GitHubRepository(application: Application) {
+class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted, var service: Service) {
 
     private var lastDay: String? = null
-    private var errorCode = MutableLiveData<Int>()
 
-    //set up database
-    private val dataBase = GitHubRepoDataBase.getInstance(application)
-    //set up retrofit
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("https://api.github.com/")
-        .addConverterFactory(MoshiConverterFactory.create())
-        .build()
-    private val service = retrofit.create(GitHubApi::class.java)
-
-    // Error code -> 1 = Network error, 2 = Successful, 0 = default state
-    fun callRepos() {
-        //Check if it's a new day
-        //Delete old database entries if so and update the day entry
-        CoroutineScope(Dispatchers.IO).launch {
-            runBlocking {
-            if (lastDay != getYesterday()) {
-                    insertYesterdayToDatabase()
-                    deleteAllRepos()
-                }
-            }
-            //do the github call
-            val result = service.getRepo("created:%3E${getYesterday()}+language:kotlin+stars:%3E0")
-            result.clone().enqueue(object : Callback<GitHubRepoList> {
-                override fun onFailure(call: Call<GitHubRepoList>, t: Throwable) {
-                    Log.e("Network Error", "", t)
-                    errorCode.value = 1
-                }
-
-                override fun onResponse(call: Call<GitHubRepoList>, response: Response<GitHubRepoList>) {
-                    if (response.body() != null) {
-                        val test = response.body()!!
-                        for (i in test.items) {
-                            Log.i(
-                                "GitHub Repo",
-                                "${i.getName()} by ${i.getOwner().login}. It has gotten ${i.getStargazers_count()} stars recently."
-                            )
-                            insertToDatabase(i)
-                        }
-                        errorCode.value = 2
-                    }
-                }
-            })
+    suspend fun deleteAllReposIfNewDay(){
+        if (lastDay != getYesterday()){
+            insertYesterdayToDatabase()
+            deleteAllRepos()
         }
     }
 
-    private fun insertToDatabase(repo: GitHubRepo) {
-        CoroutineScope(Dispatchers.IO).launch{
-            dataBase?.gitHubRepoDAO()?.insert(repo)
-            }
+    //Error Code -> 1 = Unsuccessful, 2 = Successful, 0 = Default state
+    suspend fun getDailyRepos(): Int{
+        val result = service.getRepos(getYesterday())
+        if (result != null){
+            RepoModel.saveRepos(result)
+            return 2
         }
-
-    fun getAllRepos(): LiveData<List<GitHubRepo>>?{
-        return dataBase?.gitHubRepoDAO()?.getAllRepos()
-    }
-
-    private suspend fun deleteAllRepos(){
-        dataBase?.gitHubRepoDAO()?.deleteAllRepos()
+        else{
+            return 1
+        }
     }
 
     private fun getYesterday():String{
@@ -87,28 +43,73 @@ class GitHubRepository(application: Application) {
             .format(Instant.now().minus(Duration.ofDays(1)))
     }
 
-    suspend fun getLastDayFromDatabase(){
-        lastDay = dataBase?.dayDAO()?.getDay()
+    // All Database Functions
+    private suspend fun deleteAllRepos(){
+        db.gitHubRepoDAO().deleteAllRepos()
     }
 
     private suspend fun insertYesterdayToDatabase(){
-        dataBase!!.dayDAO().insertDay(DayEntry(getYesterday(),1))
-        lastDay = dataBase.dayDAO().getDay()
+        db.dayDAO().insertDay(DayEntry(getYesterday(),1))
+        lastDay = db.dayDAO().getDay()
     }
 
-    fun getErrorCode(): LiveData<Int>{
-        return errorCode
+    //These functions are accessed from ViewModel Layer
+    suspend fun getLastDayFromDatabase(){
+        lastDay = db.dayDAO().getDay()
     }
 
-    fun resetErrorCode(){
-        errorCode.value = 0
+    fun getAllRepos(): LiveData<List<GitHubRepo>>?{
+        return db.gitHubRepoDAO().getAllRepos()
     }
 
     suspend fun getRepoCount(): Int{
-        return dataBase?.gitHubRepoDAO()!!.getRepoCount()
-    }
-
-    fun resetLastRefresh(){
+        return db.gitHubRepoDAO().getRepoCount()
     }
 
 }
+
+interface Service{
+    suspend fun getRepos(day: String):List<GitHubRepo>?
+}
+
+interface ReposCompleted{
+    fun saveRepos(list: List<GitHubRepo>)
+}
+
+class ReposCompletedDatabase(var db: GitHubRepoDataBase): ReposCompleted{
+    override fun saveRepos(list: List<GitHubRepo>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val githubRepoDAO = db.gitHubRepoDAO()
+            for (repo in list){
+                githubRepoDAO.insert(repo)
+            }
+        }
+    }
+
+}
+
+class RetroFitService(retrofit: Retrofit): Service {
+
+    private var service = retrofit.create(GitHubApi::class.java)
+
+    override suspend fun getRepos(day: String): List<GitHubRepo>? {
+        var result: List<GitHubRepo>? = null
+        try {
+            val response = service.getRepo("created:%3E$day+language:kotlin+stars:%3E0").execute()
+            if(response.isSuccessful){
+                result = response.body()!!.items
+            }
+            else{
+                Log.e("Network Error",response.message())
+            }
+        }
+        catch(exception: IOException) {
+            Log.e("Network Error","Could not connect to the server")
+        }
+
+        return result
+    }
+}
+
+
+

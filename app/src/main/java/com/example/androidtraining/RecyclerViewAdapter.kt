@@ -50,6 +50,7 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
     }
 
     fun addAll(list:List<GitHubRepo>?) {
+        Log.i("Update","Updated Data Set")
         if (list != null) {
             repoList.addAll(list)
             notifyDataSetChanged()

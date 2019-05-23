@@ -28,6 +28,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -56,4 +59,51 @@ dependencies {
     implementation 'com.squareup.moshi:moshi:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha04'
     kapt 'com.squareup.moshi:moshi-kotlin-codegen:1.6.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.2.1'
+
+
+
+    // JUnit
+    def junitVersion = "4.12"
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "junit:junit:$junitVersion"
+
+    // Truth
+    def truthVersion = "0.42"
+    testImplementation "com.google.truth:truth:$truthVersion"
+    androidTestImplementation "com.google.truth:truth:$truthVersion"
+
+    // Mockito
+    def mockitoVersion = "2.27.0"
+    def mockitoKotlinVersion = "2.1.0"
+    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion", {
+        exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.mockito'
+    }
+    androidTestImplementation "org.mockito:mockito-android:$mockitoVersion"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockitoKotlinVersion", {
+        exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.mockito'
+    }
+
+    // Android Testing Support Library's runner and rules
+    def androidTestLibVersion = "1.1.0"
+    androidTestImplementation "androidx.test:runner:$androidTestLibVersion"
+    androidTestImplementation "androidx.test:rules:$androidTestLibVersion"
+    androidTestImplementation "androidx.test.ext:junit:1.1.0"
+    androidTestImplementation "androidx.test.ext:truth:1.1.0"
+
+    // RecyclerViewMatcher
+    androidTestImplementation 'com.github.levibostian:RecyclerViewMatcher:0.1.0'
+
+    // Espresso UI Testing
+    def espressoVersion = "3.1.0"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-accessibility:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-web:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
 }
