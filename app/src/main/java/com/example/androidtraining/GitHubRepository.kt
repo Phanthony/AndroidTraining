@@ -68,14 +68,6 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
 
 }
 
-interface Service{
-    suspend fun getRepos(day: String):List<GitHubRepo>?
-}
-
-interface ReposCompleted{
-    fun saveRepos(list: List<GitHubRepo>)
-}
-
 class ReposCompletedDatabase(var db: GitHubRepoDataBase): ReposCompleted{
     override fun saveRepos(list: List<GitHubRepo>) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -111,5 +103,10 @@ class RetroFitService(retrofit: Retrofit): Service {
     }
 }
 
+interface Service{
+    suspend fun getRepos(day: String):List<GitHubRepo>?
+}
 
-
+interface ReposCompleted{
+    fun saveRepos(list: List<GitHubRepo>)
+}

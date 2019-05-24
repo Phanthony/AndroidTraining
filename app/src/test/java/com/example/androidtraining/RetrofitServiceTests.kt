@@ -16,7 +16,7 @@ import retrofit2.Retrofit
 import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
-class RetrofitServiceTest{
+class RetrofitServiceTests{
 
     @Mock lateinit var mRetrofit: Retrofit
     @Mock lateinit var mService: GitHubApi

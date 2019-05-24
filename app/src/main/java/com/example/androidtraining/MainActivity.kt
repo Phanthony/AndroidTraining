@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var gitHubViewModel: GitHubViewModel
+    private lateinit var gitHubViewModel: GitHubViewModelDependencies
     private lateinit var informationToast: Toast
     private lateinit var repoSwipeRefresh: SwipeRefreshLayout
     private val adapter = RecyclerViewAdapter(arrayListOf(), this)
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         //set up toast to display information
         informationToast = Toast.makeText(this@MainActivity, "Fetching Repos", Toast.LENGTH_LONG)
         //set up ViewModel
-        gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModel::class.java)
+        gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModelDependencies::class.java)
 
         adapter.addAll(gitHubViewModel.getRepoList()?.value)
         //set up observers
