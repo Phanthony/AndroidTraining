@@ -32,14 +32,14 @@ class GitHubViewModelIntegrationTests {
 
     private fun generateRepoList(): List<GitHubRepo> {
         val test1 = GitHubRepo("test1", GitHubRepoOwner("testLogin1"), 10, null, 1)
-        val test2 = (GitHubRepo("test2", GitHubRepoOwner("testLogin2"), 1, "testDesc2", 2))
-        val test3 = (GitHubRepo("test3", GitHubRepoOwner("testLogin3"), 89, "testDesc3", 3))
-        val test4 = (GitHubRepo("test4", GitHubRepoOwner("testLogin4"), 53, null, 4))
-        val test5 = (GitHubRepo("test5", GitHubRepoOwner("testLogin5"), 27, "testDesc5", 5))
-        return listOf(test1,test2,test3,test4,test5)
+        val test2 = (GitHubRepo("test2", GitHubRepoOwner("testLogin2"), 1, "testDesc2", 6))
+        val test3 = (GitHubRepo("test3", GitHubRepoOwner("testLogin3"), 89, "testDesc3", 7))
+        val test4 = (GitHubRepo("test4", GitHubRepoOwner("testLogin4"), 53, null, 8))
+        val test5 = (GitHubRepo("test5", GitHubRepoOwner("testLogin5"), 27, "testDesc5", 9))
+        return listOf(test1, test2, test3, test4, test5)
     }
 
-    fun changeNetworkBehaviour(failperc: Int){
+    fun changeNetworkBehaviour(failperc: Int) {
         networkBehavior.setDelay(0, TimeUnit.SECONDS)
         networkBehavior.setVariancePercent(0)
         networkBehavior.setFailurePercent(failperc)
@@ -51,35 +51,36 @@ class GitHubViewModelIntegrationTests {
         override fun getRepo(q: String): Call<GitHubRepoList> {
             return delegate.returning(failure).getRepo("")
         }
-
     }
 
     class MockGitHubApiResponseFail(var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
-        var failure: Call<GitHubRepoList> = Calls.response(Response.error(400, ResponseBody.create(MediaType.parse(""),"")))
+        var failure: Call<GitHubRepoList> =
+            Calls.response(Response.error(400, ResponseBody.create(MediaType.parse("what is this"), "for again?")))
+
         override fun getRepo(q: String): Call<GitHubRepoList> {
             return delegate.returning(failure).getRepo("")
         }
-
     }
 
-    class MockGitHubApiSuccess(var delegate: BehaviorDelegate<GitHubApi>, var gitHubRepoList: GitHubRepoList) : GitHubApi{
+    class MockGitHubApiSuccess(var delegate: BehaviorDelegate<GitHubApi>, var gitHubRepoList: GitHubRepoList) :
+        GitHubApi {
         override fun getRepo(q: String): Call<GitHubRepoList> {
             return delegate.returningResponse(gitHubRepoList).getRepo("")
         }
-
     }
 
-    lateinit var retrofit: Retrofit
-    lateinit var networkBehavior: NetworkBehavior
-    lateinit var mockRetrofit: MockRetrofit
-    lateinit var delegate: BehaviorDelegate<GitHubApi>
+    private lateinit var retrofit: Retrofit
+    private lateinit var networkBehavior: NetworkBehavior
+    private lateinit var mockRetrofit: MockRetrofit
+    private lateinit var delegate: BehaviorDelegate<GitHubApi>
     lateinit var mGitHubApi: GitHubApi
 
-    lateinit var mDB: GitHubRepoDataBase
-    lateinit var gitHubRepoDAO: GitHubRepoDAO
-    lateinit var dayEntryDataDAO: DayEntryDataDAO
+    private lateinit var mDB: GitHubRepoDataBase
+    private lateinit var gitHubRepoDAO: GitHubRepoDAO
+    private lateinit var dayEntryDataDAO: DayEntryDataDAO
 
-    @Mock lateinit var mService: Service
+    @Mock
+    lateinit var mService: Service
     lateinit var model: ReposCompletedDatabase
     lateinit var mRepository: GitHubRepository
 
@@ -195,7 +196,16 @@ class GitHubViewModelIntegrationTests {
 
 
         runBlocking {
-            whenever(mService.getRepos(any())).thenReturn(GitHubRepoList(listOf(testRepo1, testRepo2, testRepo3, testRepo4)))
+            whenever(mService.getRepos(any())).thenReturn(
+                GitHubRepoList(
+                    listOf(
+                        testRepo1,
+                        testRepo2,
+                        testRepo3,
+                        testRepo4
+                    )
+                )
+            )
             val code = mRepository.getDailyRepos()
             assertEquals(2, code)
             assertEquals(8, gitHubRepoDAO.getRepoCount())
@@ -213,14 +223,14 @@ class GitHubViewModelIntegrationTests {
     }
 
     @Test
-    fun testretrofitReturnsList(){
+    fun testretrofitReturnsList() {
         changeNetworkBehaviour(0)
         val mGithubReposList = GitHubRepoList(generateRepoList())
-        mGitHubApi = MockGitHubApiSuccess(delegate,mGithubReposList)
+        mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         val mRetrofitService = RetroFitService(mGitHubApi)
         runBlocking {
             val completed = mRetrofitService.getRepos("1998-03-10")
-            assertEquals(mGithubReposList,completed)
+            assertEquals(mGithubReposList, completed)
         }
     }
 
@@ -246,5 +256,32 @@ class GitHubViewModelIntegrationTests {
         }
     }
 
+    @Test
+    fun testGrabsReposAndStoresIntoDatabase() {
+        changeNetworkBehaviour(0)
+        val mGithubReposList = GitHubRepoList(generateRepoList())
+        mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
+        val mRetrofitService = RetroFitService(mGitHubApi)
+        //Reset Repository since we are injecting a Mocked Retrofit.
+        mRepository = GitHubRepository(mDB, model, mRetrofitService)
+        runBlocking {
+            val completed = mRepository.getDailyRepos()
+            assertEquals(2,completed)
+            assertEquals(9, gitHubRepoDAO.getRepoCount())
+        }
+    }
 
+    @Test
+    fun testGrabsReposAndFails() {
+        changeNetworkBehaviour(0)
+        mGitHubApi = MockGitHubApiFail(delegate)
+        val mRetrofitService = RetroFitService(mGitHubApi)
+        //Reset Repository since we are injecting a Mocked Retrofit.
+        mRepository = GitHubRepository(mDB, model, mRetrofitService)
+        runBlocking {
+            val completed = mRepository.getDailyRepos()
+            assertEquals(1,completed)
+            assertEquals(5, gitHubRepoDAO.getRepoCount())
+        }
+    }
 }

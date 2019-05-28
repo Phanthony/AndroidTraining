@@ -90,7 +90,6 @@ class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
     }
 }
 
-
 class TimeInformation(private var minSinceLastRefresh: MutableLiveData<Int>) {
 
     private var lastRefreshed = getTime()
