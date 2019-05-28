@@ -24,7 +24,9 @@ class RepositoryTests{
     fun setup(){
         MockitoAnnotations.initMocks(this)
         mRepository = GitHubRepository(mDatabase,mModel,mService)
-        whenever(mModel.saveRepos(any())).then {  }
+        runBlocking {
+            whenever(mModel.saveRepos(any())).then { }
+        }
     }
 
 
@@ -40,10 +42,9 @@ class RepositoryTests{
     @Test
     fun `getReposDaily successful connection`(){
         runBlocking {
-            whenever(mService.getRepos(any())).thenReturn(listOf())
+            whenever(mService.getRepos(any())).thenReturn(GitHubRepoList(listOf()))
             val result = mRepository.getDailyRepos()
             assertEquals(result,2)
         }
     }
-
 }

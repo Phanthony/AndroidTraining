@@ -61,6 +61,7 @@ dependencies {
     kapt 'com.squareup.moshi:moshi-kotlin-codegen:1.6.0'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.2.1'
     implementation 'com.google.android.material:material:1.1.0-alpha06'
+    implementation 'com.squareup.retrofit2:retrofit-mock:2.5.0'
 
 
 

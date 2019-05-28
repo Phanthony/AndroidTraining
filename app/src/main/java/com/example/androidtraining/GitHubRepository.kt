@@ -17,26 +17,29 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
 
     private var lastDay: String? = null
 
-    suspend fun deleteAllReposIfNewDay(){
-        if (lastDay != getYesterday()){
+    suspend fun deleteAllReposIfNewDay() {
+        checkYesterday(getYesterday())
+    }
+
+    suspend fun checkYesterday(day: String) {
+        if (!lastDay.equals(day)) {
             insertYesterdayToDatabase()
             deleteAllRepos()
         }
     }
 
     //Error Code -> 1 = Unsuccessful, 2 = Successful, 0 = Default state
-    suspend fun getDailyRepos(): Int{
+    suspend fun getDailyRepos(): Int {
         val result = service.getRepos(getYesterday())
-        if (result != null){
+        if (result != null) {
             RepoModel.saveRepos(result)
             return 2
-        }
-        else{
+        } else {
             return 1
         }
     }
 
-    private fun getYesterday():String{
+    private fun getYesterday(): String {
         return (DateTimeFormatter.ofPattern("yyyy-MM-dd")
             .withLocale(Locale.US)
             .withZone(ZoneId.systemDefault()))
@@ -44,69 +47,63 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
     }
 
     // All Database Functions
-    private suspend fun deleteAllRepos(){
+    private suspend fun deleteAllRepos() {
         db.gitHubRepoDAO().deleteAllRepos()
     }
 
-    private suspend fun insertYesterdayToDatabase(){
-        db.dayDAO().insertDay(DayEntry(getYesterday(),1))
+    private suspend fun insertYesterdayToDatabase() {
+        db.dayDAO().insertDay(DayEntry(getYesterday(), 1))
         lastDay = db.dayDAO().getDay()
     }
 
     //These functions are accessed from ViewModel Layer
-    suspend fun getLastDayFromDatabase(){
+    suspend fun getLastDayFromDatabase() {
         lastDay = db.dayDAO().getDay()
     }
 
-    fun getAllRepos(): LiveData<List<GitHubRepo>>?{
+    fun getAllRepos(): LiveData<List<GitHubRepo>>? {
         return db.gitHubRepoDAO().getAllRepos()
     }
 
-    suspend fun getRepoCount(): Int{
+    suspend fun getRepoCount(): Int {
         return db.gitHubRepoDAO().getRepoCount()
     }
 
 }
 
-class ReposCompletedDatabase(var db: GitHubRepoDataBase): ReposCompleted{
-    override fun saveRepos(list: List<GitHubRepo>) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val githubRepoDAO = db.gitHubRepoDAO()
-            for (repo in list){
-                githubRepoDAO.insert(repo)
-            }
+class ReposCompletedDatabase(private var db: GitHubRepoDataBase) : ReposCompleted {
+    override suspend fun saveRepos(gitHubRepoList: GitHubRepoList) {
+        val githubRepoDAO = db.gitHubRepoDAO()
+        for (repo in gitHubRepoList.items) {
+            githubRepoDAO.insert(repo)
         }
     }
 
 }
 
-class RetroFitService(retrofit: Retrofit): Service {
+class RetroFitService(private var service: GitHubApi) : Service {
 
-    private var service = retrofit.create(GitHubApi::class.java)
-
-    override suspend fun getRepos(day: String): List<GitHubRepo>? {
-        var result: List<GitHubRepo>? = null
+    override suspend fun getRepos(day: String): GitHubRepoList? {
+        var result: GitHubRepoList? = null
         try {
             val response = service.getRepo("created:%3E$day+language:kotlin+stars:%3E0").execute()
-            if(response.isSuccessful){
-                result = response.body()!!.items
+            if (response.isSuccessful) {
+                result = response.body()
+            } else {
+                Log.e("Network Error", response.errorBody().toString())
             }
-            else{
-                Log.e("Network Error",response.message())
-            }
-        }
-        catch(exception: IOException) {
-            Log.e("Network Error","Could not connect to the server")
+        } catch (exception: IOException) {
+            Log.e("Network Error", "Could not connect to the server")
         }
 
         return result
     }
 }
 
-interface Service{
-    suspend fun getRepos(day: String):List<GitHubRepo>?
+interface Service {
+    suspend fun getRepos(day: String): GitHubRepoList?
 }
 
-interface ReposCompleted{
-    fun saveRepos(list: List<GitHubRepo>)
+interface ReposCompleted {
+    suspend fun saveRepos(gitHubRepoList: GitHubRepoList)
 }
