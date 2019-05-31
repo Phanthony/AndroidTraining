@@ -108,10 +108,10 @@ class RetrofitServiceTests {
         }
     }
 
-    fun changeNetworkBehaviour(failperc: Int){
+    private fun changeNetworkBehaviour(failPercent: Int){
         networkBehavior.setDelay(0, TimeUnit.SECONDS)
         networkBehavior.setVariancePercent(0)
-        networkBehavior.setFailurePercent(failperc)
+        networkBehavior.setFailurePercent(failPercent)
     }
 
 }

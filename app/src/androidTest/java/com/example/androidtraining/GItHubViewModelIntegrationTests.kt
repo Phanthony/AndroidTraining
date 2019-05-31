@@ -1,11 +1,17 @@
 package com.example.androidtraining
 
 import android.content.Context
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.Observer
+import androidx.room.Index
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.whenever
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType
 import okhttp3.ResponseBody
@@ -26,9 +32,14 @@ import retrofit2.mock.MockRetrofit
 import retrofit2.mock.NetworkBehavior
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.test.*
+import org.junit.Rule
 
 @RunWith(AndroidJUnit4::class)
 class GitHubViewModelIntegrationTests {
+
+    @get:Rule
+    var instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private fun generateRepoList(): List<GitHubRepo> {
         val test1 = GitHubRepo("test1", GitHubRepoOwner("testLogin1"), 10, null, 1)
@@ -39,10 +50,10 @@ class GitHubViewModelIntegrationTests {
         return listOf(test1, test2, test3, test4, test5)
     }
 
-    fun changeNetworkBehaviour(failperc: Int) {
+    private fun changeNetworkBehaviour(failPercent: Int) {
         networkBehavior.setDelay(0, TimeUnit.SECONDS)
         networkBehavior.setVariancePercent(0)
-        networkBehavior.setFailurePercent(failperc)
+        networkBehavior.setFailurePercent(failPercent)
     }
 
     class MockGitHubApiFail(var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
@@ -55,15 +66,14 @@ class GitHubViewModelIntegrationTests {
 
     class MockGitHubApiResponseFail(var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
         var failure: Call<GitHubRepoList> =
-            Calls.response(Response.error(400, ResponseBody.create(MediaType.parse("what is this"), "for again?")))
+            Calls.response(Response.error(400, ResponseBody.create(MediaType.parse(""), "")))
 
         override fun getRepo(q: String): Call<GitHubRepoList> {
             return delegate.returning(failure).getRepo("")
         }
     }
 
-    class MockGitHubApiSuccess(var delegate: BehaviorDelegate<GitHubApi>, var gitHubRepoList: GitHubRepoList) :
-        GitHubApi {
+    class MockGitHubApiSuccess(var delegate: BehaviorDelegate<GitHubApi>, var gitHubRepoList: GitHubRepoList) : GitHubApi {
         override fun getRepo(q: String): Call<GitHubRepoList> {
             return delegate.returningResponse(gitHubRepoList).getRepo("")
         }
@@ -79,8 +89,10 @@ class GitHubViewModelIntegrationTests {
     private lateinit var gitHubRepoDAO: GitHubRepoDAO
     private lateinit var dayEntryDataDAO: DayEntryDataDAO
 
-    @Mock
-    lateinit var mService: Service
+    @Mock lateinit var mDay: Day
+    @Mock lateinit var listObserver: Observer<List<GitHubRepo>>
+    @Mock lateinit var codeObserver: Observer<Int>
+    @Mock lateinit var mService: Service
     lateinit var model: ReposCompletedDatabase
     lateinit var mRepository: GitHubRepository
 
@@ -102,9 +114,11 @@ class GitHubViewModelIntegrationTests {
         }
     }
 
+    @ExperimentalCoroutinesApi
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
+        whenever(mDay.getYesterday()).thenReturn("1998-03-10")
         //Set up mock database
         val context = ApplicationProvider.getApplicationContext<Context>()
         mDB = Room.inMemoryDatabaseBuilder(context, GitHubRepoDataBase::class.java).allowMainThreadQueries().build()
@@ -112,7 +126,7 @@ class GitHubViewModelIntegrationTests {
         dayEntryDataDAO = mDB.dayDAO()
         //Set up Repository with mock objects
         model = ReposCompletedDatabase(mDB)
-        mRepository = GitHubRepository(mDB, model, mService)
+        mRepository = GitHubRepository(mDB, model, mService,mDay)
         //Set up viewmodel with mock objects
         gitHubViewModelInjected = GitHubViewModelInjected(mRepository)
         //prevent the initial pull in initialsetup by pre populating the database
@@ -194,7 +208,6 @@ class GitHubViewModelIntegrationTests {
         val testRepo3 = GitHubRepo("test14", GitHubRepoOwner("testLogin10"), 810, "desc", 810)
         val testRepo4 = GitHubRepo("test81", GitHubRepoOwner("testLogin112"), 4, null, 92)
 
-
         runBlocking {
             whenever(mService.getRepos(any())).thenReturn(
                 GitHubRepoList(
@@ -263,12 +276,18 @@ class GitHubViewModelIntegrationTests {
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         val mRetrofitService = RetroFitService(mGitHubApi)
         //Reset Repository since we are injecting a Mocked Retrofit.
-        mRepository = GitHubRepository(mDB, model, mRetrofitService)
+        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
+        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
+        //set up observers
+        mGitHubViewModelInjected.getErrorCode().observeForever(codeObserver)
+        mGitHubViewModelInjected.getRepoList()?.observeForever(listObserver)
         runBlocking {
-            val completed = mRepository.getDailyRepos()
-            assertEquals(2,completed)
+            mGitHubViewModelInjected.initialSetup()
+            mGitHubViewModelInjected.getRepos()
             assertEquals(9, gitHubRepoDAO.getRepoCount())
         }
+        assertEquals(2,mGitHubViewModelInjected.getErrorCode().value)
+        assertEquals(9,mGitHubViewModelInjected.getRepoList()?.value?.size)
     }
 
     @Test
@@ -277,11 +296,34 @@ class GitHubViewModelIntegrationTests {
         mGitHubApi = MockGitHubApiFail(delegate)
         val mRetrofitService = RetroFitService(mGitHubApi)
         //Reset Repository since we are injecting a Mocked Retrofit.
-        mRepository = GitHubRepository(mDB, model, mRetrofitService)
+        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
+        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
+        //set up observers
+        mGitHubViewModelInjected.getErrorCode().observeForever(codeObserver)
+        mGitHubViewModelInjected.getRepoList()?.observeForever(listObserver)
         runBlocking {
-            val completed = mRepository.getDailyRepos()
-            assertEquals(1,completed)
+            mGitHubViewModelInjected.initialSetup()
+            mGitHubViewModelInjected.getRepos()
             assertEquals(5, gitHubRepoDAO.getRepoCount())
         }
+        assertEquals(1,mGitHubViewModelInjected.getErrorCode().value)
+        assertEquals(5,mGitHubViewModelInjected.getRepoList()?.value?.size)
     }
+
+    @Test
+    fun testNewDayAndGrabReposFails(){
+        //reset getYesterday to produce a different day
+        whenever(mDay.getYesterday()).thenReturn("1998-03-15")
+        changeNetworkBehaviour(0)
+        mGitHubApi = MockGitHubApiFail(delegate)
+        val mRetrofitService = RetroFitService(mGitHubApi)
+        //Reset Repository since we are injecting a Mocked Retrofit.
+        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
+        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
+        runBlocking {
+            mGitHubViewModelInjected.initialSetup()
+            mGitHubViewModelInjected.getRepos()
+        }
+    }
+
 }

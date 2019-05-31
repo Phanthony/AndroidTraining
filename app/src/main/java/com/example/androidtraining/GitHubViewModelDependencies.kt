@@ -15,47 +15,43 @@ import java.util.*
 
 class GitHubViewModelDependencies(application: Application) : AndroidViewModel(application) {
 
-    private val dataBase = GitHubRepoDataBase.getInstance(application)!!
-    private var gitHubModel = ReposCompletedDatabase(dataBase)
-    private var retrofitService = RetroFitService(
-        Retrofit.Builder()
-            .baseUrl("https://api.github.com/")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .build().create(GitHubApi::class.java)
-    )
-    private var gitHubRepository = com.example.androidtraining.GitHubRepository(dataBase, gitHubModel, retrofitService)
-
-    private var repoList = gitHubRepository.getAllRepos()
     private var minSinceLastRefresh = MutableLiveData<Int>()
-    private var errorCode = MutableLiveData<Int>()
-    private var timeInformation = com.example.androidtraining.TimeInformation(minSinceLastRefresh)
+    private var timeInformation = TimeInformation(minSinceLastRefresh)
 
-    private var gitHubViewModelInjected = GitHubViewModelInjected(gitHubRepository)
+    private var gitHubViewModelInjected : GitHubViewModelInjected
 
     init {
+        val dataBase = GitHubRepoDataBase.getInstance(application)!!
+        val gitHubModel = ReposCompletedDatabase(dataBase)
+        val retrofitService = RetroFitService(
+            Retrofit.Builder()
+                .baseUrl("https://api.github.com/")
+                .addConverterFactory(MoshiConverterFactory.create())
+                .build().create(GitHubApi::class.java)
+        )
+        val dayInformation = DayInformation()
+        val gitHubRepository = GitHubRepository(dataBase, gitHubModel, retrofitService,dayInformation)
+        gitHubViewModelInjected = GitHubViewModelInjected(gitHubRepository)
+
         CoroutineScope(Dispatchers.IO).launch {
             gitHubViewModelInjected.initialSetup()
         }
-
         //Set up time handler
         timeInformation.timeHandler().run()
     }
 
     fun getRepos() {
         CoroutineScope(Dispatchers.IO).launch {
-            val result = gitHubViewModelInjected.getRepos()
-            withContext(Dispatchers.Main) {
-                errorCode.value = result
-            }
+            gitHubViewModelInjected.getRepos()
         }
     }
 
     fun getNetworkError(): LiveData<Int> {
-        return errorCode
+        return gitHubViewModelInjected.getErrorCode()
     }
 
     fun getRepoList(): LiveData<List<GitHubRepo>>? {
-        return repoList
+        return gitHubViewModelInjected.getRepoList()
     }
 
     fun getMinSinceLastRefresh(): LiveData<Int> {
@@ -63,7 +59,7 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
     }
 
     fun resetNetworkError() {
-        errorCode.value = 0
+       gitHubViewModelInjected.resetErrorCode()
     }
 
     fun resetLastRefresh() {
@@ -73,9 +69,18 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
 
 class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
 
-    suspend fun getRepos(): Int {
+    val FAILURE = 1
+    val SUCCESS = 2
+
+    private var repoList = gitHubRepository.getAllRepos()
+    private var errorCode = MutableLiveData<Int>()
+
+    suspend fun getRepos(){
         gitHubRepository.deleteAllReposIfNewDay()
-        return gitHubRepository.getDailyRepos()
+        val result =  gitHubRepository.getDailyRepos()
+        withContext(Dispatchers.Main) {
+            errorCode.value = result
+        }
     }
 
     suspend fun initialSetup() {
@@ -87,6 +92,18 @@ class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
         if (gitHubRepository.getRepoCount() == 0) {
             getRepos()
         }
+    }
+
+    fun getErrorCode(): LiveData<Int>{
+        return errorCode
+    }
+
+    fun resetErrorCode(){
+        errorCode.value = 0
+    }
+
+    fun getRepoList(): LiveData<List<GitHubRepo>>?{
+        return repoList
     }
 }
 
