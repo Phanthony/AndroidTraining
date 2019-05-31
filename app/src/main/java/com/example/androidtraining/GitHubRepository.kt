@@ -13,25 +13,20 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
 
     private var lastDay: String? = null
 
-    suspend fun deleteAllReposIfNewDay() {
-        checkYesterday(day.getYesterday())
-    }
-
-    suspend fun checkYesterday(day: String) {
-        if (!lastDay.equals(day)) {
+    suspend fun checkYesterday() {
+        if (!lastDay.equals(day.getYesterday())) {
             insertYesterdayToDatabase()
             deleteAllRepos()
         }
     }
 
     //Error Code -> 1 = Unsuccessful, 2 = Successful, 0 = Default state
-    suspend fun getDailyRepos(): Int {
+    suspend fun getDailyRepos(): GitHubRepoList? {
         val result = service.getRepos(day.getYesterday())
         if (result != null) {
-            RepoModel.saveRepos(result)
-            return 2
+            return result
         } else {
-            return 1
+            return null
         }
     }
 
@@ -43,6 +38,10 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
     private suspend fun insertYesterdayToDatabase() {
         db.dayDAO().insertDay(DayEntry(day.getYesterday(), 1))
         lastDay = db.dayDAO().getDay()
+    }
+
+    suspend fun saveRepos(result:GitHubRepoList){
+        RepoModel.saveRepos(result)
     }
 
     //These functions are accessed from ViewModel Layer

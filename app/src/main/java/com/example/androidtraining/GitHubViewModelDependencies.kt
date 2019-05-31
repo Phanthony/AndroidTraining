@@ -76,10 +76,15 @@ class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
     private var errorCode = MutableLiveData<Int>()
 
     suspend fun getRepos(){
-        gitHubRepository.deleteAllReposIfNewDay()
+        var networkResult = FAILURE
         val result =  gitHubRepository.getDailyRepos()
+        if (result != null){
+            networkResult = SUCCESS
+            gitHubRepository.checkYesterday()
+            gitHubRepository.saveRepos(result)
+        }
         withContext(Dispatchers.Main) {
-            errorCode.value = result
+            errorCode.value = networkResult
         }
     }
 

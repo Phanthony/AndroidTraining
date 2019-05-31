@@ -17,16 +17,15 @@ class RepositoryTests{
     @Mock lateinit var mDatabase: GitHubRepoDataBase
     @Mock lateinit var mService: Service
     @Mock lateinit var mModel: ReposCompleted
+    @Mock lateinit var mDay: Day
 
     lateinit var mRepository: GitHubRepository
 
     @Before
     fun setup(){
         MockitoAnnotations.initMocks(this)
-        mRepository = GitHubRepository(mDatabase,mModel,mService)
-        runBlocking {
-            whenever(mModel.saveRepos(any())).then { }
-        }
+        mRepository = GitHubRepository(mDatabase,mModel,mService,mDay)
+        whenever(mDay.getYesterday()).thenReturn("")
     }
 
 
@@ -35,16 +34,17 @@ class RepositoryTests{
        runBlocking{
             whenever(mService.getRepos(any())).thenReturn(null)
             val result = mRepository.getDailyRepos()
-            assertEquals(result,1)
+            assertEquals(result,null)
         }
     }
 
     @Test
     fun `getReposDaily successful connection`(){
         runBlocking {
-            whenever(mService.getRepos(any())).thenReturn(GitHubRepoList(listOf()))
+            val mGitHubRepoList = GitHubRepoList(listOf())
+            whenever(mService.getRepos(any())).thenReturn(mGitHubRepoList)
             val result = mRepository.getDailyRepos()
-            assertEquals(result,2)
+            assertEquals(result,mGitHubRepoList)
         }
     }
 }
