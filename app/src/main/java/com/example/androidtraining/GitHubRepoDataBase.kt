@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-@Database(entities = [GitHubRepo::class,DayEntry::class],version = 1)
+@Database(entities = [GitHubRepo::class,DayEntry::class],version = 12)
 abstract class GitHubRepoDataBase: RoomDatabase() {
 
 
@@ -28,6 +28,7 @@ abstract class GitHubRepoDataBase: RoomDatabase() {
                         GitHubRepoDataBase::class.java,
                         "Repo_Database"
                     )
+                        .fallbackToDestructiveMigration()
                         .build()
                     getInstance(context)?.populateDatabaseWithDay()
                 }

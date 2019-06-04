@@ -1,52 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="5dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
+        android:id="@+id/RepoLayout"
+        android:orientation="vertical"
+        android:layout_marginBottom="25dp"
 >
-    <RelativeLayout
-            style="@style/LightButtons"
-            android:id="@+id/RepoLayout"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
+
+    <TextView
+            style="@style/h3link"
+            android:id="@+id/RepoNameAuthor"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
-    >
+            android:text="@string/authorAndRepoName"
 
-        <TextView
-                style="@style/LightButtons"
-                android:id="@+id/RepoNameAuthor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/authorAndRepoName"
-                android:textSize="24sp"
+    />
 
-        />
-
-        <TextView
-
-                android:id="@+id/RepoDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:layout_below="@+id/RepoNameAuthor"
-        />
+    <TextView
+            style="@style/h2"
+            android:id="@+id/RepoDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:layout_below="@+id/RepoNameAuthor"
+    />
 
 
-        <TextView
-                android:id="@+id/RepoStars"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/dailyStars"
-                android:textSize="14sp"
-                android:layout_below="@+id/RepoDescription"
-        />
+    <TextView
+            style="@style/h2"
+            android:id="@+id/RepoStars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dailyStars"
+            android:textSize="14sp"
+            android:layout_below="@+id/RepoDescription"
+    />
 
 
-
-    </RelativeLayout>
-</LinearLayout>
+</RelativeLayout>

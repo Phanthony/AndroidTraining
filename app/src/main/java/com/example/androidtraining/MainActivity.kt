@@ -67,7 +67,8 @@ class MainActivity : AppCompatActivity() {
         })
 
         //Set up Toolbar
-        ToolBar.title = "Daily Trending Kotlin Repos"
+        ToolBar.title = getString(R.string.trending)
+        ToolBar.setTitleTextColor(android.graphics.Color.WHITE)
         setSupportActionBar(ToolBar)
 
         //Set up The RecycleView with Swipe Refresh

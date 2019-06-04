@@ -34,7 +34,12 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
         }
         holder.repoStars.text = textToBe
         holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.getOwner().login,currentRepo.getName())
-        holder.repoDesc.text = currentRepo.getDescription()
+        if(currentRepo.getDescription() != null) {
+            holder.repoDesc.text = currentRepo.getDescription()
+        }
+        else{
+            holder.repoDesc.text = context.getString(R.string.noDescAvail)
+        }
     }
 
     fun clear(){

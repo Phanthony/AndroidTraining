@@ -5,5 +5,8 @@
     <string name="authorAndRepoName">%s / %s</string>
     <string name="dailyStars">%s star%s today</string>
     <string name="networkDialogMessage">A Network failure occurred</string>
-    <string name="Ok">Ok</string>
+    <string name="Ok">OK</string>
+    <string name="trendingTitle">Top Kotlin Repos past 24 hours</string>
+    <string name="noDescAvail">No Description Available</string>
+    <string name="trending">Trending</string>
 </resources>

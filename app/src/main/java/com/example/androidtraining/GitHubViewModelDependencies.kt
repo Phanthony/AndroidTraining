@@ -86,7 +86,7 @@ class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
         withContext(Dispatchers.Main) {
             errorCode.value = networkResult
         }
-    }
+    } 
 
     suspend fun initialSetup() {
         runBlocking {

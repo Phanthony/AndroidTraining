@@ -26,6 +26,14 @@
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/topMargin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.14"
+    />
+
+    <androidx.constraintlayout.widget.Guideline
             android:id="@+id/leftMargin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -38,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.9"
+            app:layout_constraintGuide_percent="0.85"
     />
 
     <TextView
@@ -46,9 +54,8 @@
             android:id="@+id/TrendingTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/ToolBar"
+            app:layout_constraintTop_toBottomOf="@id/topMargin"
             app:layout_constraintLeft_toLeftOf="@id/leftMargin"
-            android:layout_marginTop="19dp"
             android:text="@string/trendingTitle"
     />
 
@@ -58,7 +65,7 @@
             android:id="@+id/RecycleViewSwipeRefresh"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="30dp"
             app:layout_constraintHeight_percent="0.7"
             app:layout_constraintTop_toBottomOf="@id/TrendingTitle"
             app:layout_constraintLeft_toLeftOf="@id/leftMargin"
@@ -69,7 +76,6 @@
         <androidx.recyclerview.widget.RecyclerView
                 android:background="#fff"
                 android:id="@+id/RepoList"
-                android:layout_marginTop="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
         />
