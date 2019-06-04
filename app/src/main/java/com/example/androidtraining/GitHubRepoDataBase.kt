@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-@Database(entities = [GitHubRepo::class,DayEntry::class],version = 12)
+@Database(entities = [GitHubRepo::class,DayEntry::class],version = 14)
 abstract class GitHubRepoDataBase: RoomDatabase() {
 
 

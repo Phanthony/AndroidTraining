@@ -8,6 +8,12 @@
         android:orientation="vertical"
         android:layout_marginBottom="25dp"
 >
+    <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/RepoImage"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
+            android:layout_marginEnd="10dp"
+    />
 
     <TextView
             style="@style/h3link"
@@ -15,6 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/authorAndRepoName"
+            android:layout_toEndOf="@id/RepoImage"
 
     />
 
@@ -25,6 +32,7 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:layout_below="@+id/RepoNameAuthor"
+            android:layout_toEndOf="@id/RepoImage"
     />
 
 
@@ -36,6 +44,7 @@
             android:text="@string/dailyStars"
             android:textSize="14sp"
             android:layout_below="@+id/RepoDescription"
+            android:layout_toEndOf="@id/RepoImage"
     />
 
 

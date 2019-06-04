@@ -22,4 +22,4 @@ data class GitHubRepo(@ColumnInfo(name = "repoTitle") private var name: String,
 data class GitHubRepoList(var items: List<GitHubRepo>)
 
 
-data class GitHubRepoOwner(var login: String)
+data class GitHubRepoOwner(var login: String, var avatar_url: String)

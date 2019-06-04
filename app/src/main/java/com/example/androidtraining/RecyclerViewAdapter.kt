@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.repolayout.view.*
 import kotlin.collections.ArrayList
 
@@ -17,6 +18,7 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
         val repoName = itemView.RepoNameAuthor!!
         val repoDesc = itemView.RepoDescription!!
         val repoStars = itemView.RepoStars!!
+        val repoImage = itemView.RepoImage!!
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerViewAdapter.ViewHolder {
@@ -28,18 +30,18 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
 
     override fun onBindViewHolder(holder: RecyclerViewAdapter.ViewHolder, position: Int) {
         val currentRepo = repoList[position]
-        val textToBe = when(currentRepo.getStargazers_count()){
+        val textToBeRepoStars = when(currentRepo.getStargazers_count()){
             1 -> context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","")
             else ->  context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","s")
         }
-        holder.repoStars.text = textToBe
+        val textToBeRepoDesc = when(currentRepo.getDescription()){
+            null -> context.getString(R.string.noDescAvail)
+            else -> currentRepo.getDescription()
+        }
+        holder.repoStars.text = textToBeRepoStars
         holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.getOwner().login,currentRepo.getName())
-        if(currentRepo.getDescription() != null) {
-            holder.repoDesc.text = currentRepo.getDescription()
-        }
-        else{
-            holder.repoDesc.text = context.getString(R.string.noDescAvail)
-        }
+        holder.repoDesc.text = textToBeRepoDesc
+        Glide.with(context).load(currentRepo.getOwner().avatar_url).into(holder.repoImage)
     }
 
     fun clear(){
