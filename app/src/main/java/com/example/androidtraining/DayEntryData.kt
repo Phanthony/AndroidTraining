@@ -1,19 +1,22 @@
 package com.example.androidtraining
 
 import androidx.room.*
+import io.reactivex.Completable
+import io.reactivex.Maybe
+import io.reactivex.Single
 
 
 @Dao
 interface DayEntryDataDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDay(day: DayEntry)
+    fun insertDay(day: DayEntry): Completable
 
     @Query("SELECT day FROM Day_Table WHERE id = 1 LIMIT 1")
-    suspend fun getDay(): String
+    fun getDay(): Maybe<String>
 
     @Query("SELECT COUNT(*) FROM DAY_TABLE")
-    suspend fun getDayCount(): Int
+    fun getDayCount(): Single<Int>
 
 }
 

@@ -1,7 +1,16 @@
 package com.example.androidtraining
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import io.reactivex.*
+import io.reactivex.rxkotlin.*
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.Consumer
+import io.reactivex.schedulers.Schedulers
+import retrofit2.adapter.rxjava2.Result
 import java.io.IOException
 import java.time.Duration
 import java.time.Instant
@@ -13,7 +22,7 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
 
     private var lastDay: String? = null
 
-    suspend fun checkYesterday() {
+    fun checkYesterday() {
         if (!lastDay.equals(day.getYesterday())) {
             insertYesterdayToDatabase()
             deleteAllRepos()
@@ -21,81 +30,64 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
     }
 
     //Error Code -> 1 = Unsuccessful, 2 = Successful, 0 = Default state
-    suspend fun getDailyRepos(): GitHubRepoList? {
-        val result = service.getRepos(day.getYesterday())
-        if (result != null) {
-            return result
-        } else {
-            return null
-        }
+    fun getDailyRepos(): Single<Result<GitHubRepoList>> {
+        checkYesterday()
+        return service.getRepos(day.getYesterday())
     }
 
     // All Database Functions
-    private suspend fun deleteAllRepos() {
+    private fun deleteAllRepos() {
         db.gitHubRepoDAO().deleteAllRepos()
     }
 
-    private suspend fun insertYesterdayToDatabase() {
-        db.dayDAO().insertDay(DayEntry(day.getYesterday(), 1))
-        lastDay = db.dayDAO().getDay()
-    }
+    private fun insertYesterdayToDatabase() {
+        db.dayDAO().insertDay(DayEntry(day.getYesterday(),1))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onComplete = {
+                    lastDay = day.getYesterday()
+                }
+            )
 
-    suspend fun saveRepos(result:GitHubRepoList){
-        RepoModel.saveRepos(result)
+        //db.dayDAO().insertDay(DayEntry(day.getYesterday(), 1))
+        //lastDay = db.dayDAO().getDay()
     }
 
     //These functions are accessed from ViewModel Layer
-    suspend fun getLastDayFromDatabase() {
-        lastDay = db.dayDAO().getDay()
+   fun getLastDayFromDatabase() {
+        db.dayDAO().getDay()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onSuccess = {lastDay = it},
+                onError = {}
+            )
     }
 
     fun getAllRepos(): LiveData<List<GitHubRepo>>? {
         return db.gitHubRepoDAO().getAllRepos()
     }
 
-    suspend fun getRepoCount(): Int {
+    fun getRepoCount(): Single<Int> {
         return db.gitHubRepoDAO().getRepoCount()
     }
 
+
+
 }
 
-class ReposCompletedDatabase(private var db: GitHubRepoDataBase) : ReposCompleted {
-    override suspend fun saveRepos(gitHubRepoList: GitHubRepoList) {
-        val githubRepoDAO = db.gitHubRepoDAO()
-        for (repo in gitHubRepoList.items) {
-            githubRepoDAO.insert(repo)
-        }
+class ReposCompletedDatabase(db: GitHubRepoDataBase) : ReposCompleted {
+    private val githubRepoDAO = db.gitHubRepoDAO()
+    override fun saveRepos(gitHubRepo: GitHubRepo) {
+        githubRepoDAO.insert(gitHubRepo)
     }
-
 }
 
 class RetroFitService(private var service: GitHubApi) : Service {
-
-    override suspend fun getRepos(day: String): GitHubRepoList? {
-        var result: GitHubRepoList? = null
-        try {
-            val response = service.getRepo("created:%3E$day+language:kotlin+stars:%3E0").execute()
-            if (response.isSuccessful) {
-                result = response.body()
-            }
-            else {
-                Log.e("Network Error", response.errorBody().toString())
-            }
-        }
-        catch (exception: IOException) {
-            Log.e("Network Error", "Could not connect to the server")
-        }
-
-        return result
+    override fun getRepos(day: String): Single<Result<GitHubRepoList>> {
+        return service.getRepo("created:%3E$day+language:kotlin+stars:%3E0")
     }
-}
-
-interface Service {
-    suspend fun getRepos(day: String): GitHubRepoList?
-}
-
-interface ReposCompleted {
-    suspend fun saveRepos(gitHubRepoList: GitHubRepoList)
 }
 
 class DayInformation: Day{
@@ -105,6 +97,14 @@ class DayInformation: Day{
             .withZone(ZoneId.systemDefault()))
             .format(Instant.now().minus(Duration.ofDays(1)))
     }
+}
+
+interface Service {
+    fun getRepos(day: String): Single<Result<GitHubRepoList>>
+}
+
+interface ReposCompleted {
+   fun saveRepos(gitHubRepo: GitHubRepo)
 }
 
 interface Day{

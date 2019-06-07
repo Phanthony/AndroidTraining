@@ -1,6 +1,7 @@
 package com.example.androidtraining
 
-import retrofit2.Call
+import io.reactivex.Single
+import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -8,6 +9,6 @@ import retrofit2.http.Query
 interface GitHubApi {
 
     @GET("/search/repositories?sort=stars")
-    fun getRepo(@Query("q", encoded = true) q: String): Call<GitHubRepoList>
+    fun getRepo(@Query("q", encoded = true) q: String): Single<Result<GitHubRepoList>>
 
 }

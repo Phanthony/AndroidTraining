@@ -2,21 +2,23 @@ package com.example.androidtraining
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import io.reactivex.Completable
+import io.reactivex.Single
 
 @Dao
 interface GitHubRepoDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(gitHubRepo: GitHubRepo)
+    fun insert(gitHubRepo: GitHubRepo)
 
     @Query("DELETE FROM Repo_Table")
-    suspend fun deleteAllRepos()
+    fun deleteAllRepos(): Completable
 
     @Query("SELECT * FROM Repo_Table ORDER BY repoStarCount DESC")
     fun getAllRepos(): LiveData<List<GitHubRepo>>
 
     @Query("SELECT COUNT(*) FROM Repo_Table")
-    suspend fun getRepoCount(): Int
+    fun getRepoCount(): Single<Int>
 
 
 

@@ -5,8 +5,15 @@ import android.os.Handler
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.time.Instant
 import java.time.ZoneId
@@ -27,23 +34,20 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
             Retrofit.Builder()
                 .baseUrl("https://api.github.com/")
                 .addConverterFactory(MoshiConverterFactory.create())
-                .build().create(GitHubApi::class.java)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                .build()
+                .create(GitHubApi::class.java)
         )
         val dayInformation = DayInformation()
         val gitHubRepository = GitHubRepository(dataBase, gitHubModel, retrofitService,dayInformation)
         gitHubViewModelInjected = GitHubViewModelInjected(gitHubRepository)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            gitHubViewModelInjected.initialSetup()
-        }
+        gitHubViewModelInjected.initialSetup()
         //Set up time handler
         timeInformation.timeHandler().run()
     }
 
     fun getRepos() {
-        CoroutineScope(Dispatchers.IO).launch {
-            gitHubViewModelInjected.getRepos()
-        }
+        gitHubViewModelInjected.getRepos()
     }
 
     fun getNetworkError(): LiveData<Int> {
@@ -59,7 +63,7 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
     }
 
     fun resetNetworkError() {
-       gitHubViewModelInjected.resetErrorCode()
+       gitHubViewModelInjected.setErrorCode()
     }
 
     fun resetLastRefresh() {
@@ -69,42 +73,59 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
 
 class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
 
+    val mComposite = CompositeDisposable()
+
     val FAILURE = 1
     val SUCCESS = 2
 
-    private var repoList = gitHubRepository.getAllRepos()
     private var errorCode = MutableLiveData<Int>()
+    private var repoList = gitHubRepository.getAllRepos()
 
-    suspend fun getRepos(){
-        var networkResult = FAILURE
-        val result =  gitHubRepository.getDailyRepos()
-        if (result != null){
-            networkResult = SUCCESS
-            gitHubRepository.checkYesterday()
-            gitHubRepository.saveRepos(result)
-        }
-        withContext(Dispatchers.Main) {
-            errorCode.value = networkResult
-        }
+    fun getRepos(){
+        val gitHubRepoListSingle = gitHubRepository.getDailyRepos()
+        gitHubRepoListSingle
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+            onSuccess = {
+                when(it.isError){
+                false -> {Observable.fromIterable(it.response()!!.body()!!.items)
+                    .observeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.io())
+                    .subscribeBy(
+                        onNext = {gitHubRepository.RepoModel.saveRepos(it)},
+                        onComplete = {
+                            setErrorCode(SUCCESS)})}
+                else -> {setErrorCode(FAILURE)}
+            }},
+            onError = {setErrorCode(FAILURE)}
+        )
+            .addTo(mComposite)
     } 
 
-    suspend fun initialSetup() {
-        runBlocking {
-            //Set up lastday parameter in the repository
-            gitHubRepository.getLastDayFromDatabase()
-        }
+    fun initialSetup() {
+        //Set up lastday parameter in the repository
+        gitHubRepository.getLastDayFromDatabase()
         // Initial pull if there is no data in the database
-        if (gitHubRepository.getRepoCount() == 0) {
-            getRepos()
-        }
+
+        gitHubRepository.getRepoCount()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onSuccess = {if(it == 0){
+                    getRepos()
+                }}
+            )
+
     }
 
     fun getErrorCode(): LiveData<Int>{
         return errorCode
     }
 
-    fun resetErrorCode(){
-        errorCode.value = 0
+    fun setErrorCode(code:Int = 0){
+        CoroutineScope(Dispatchers.Main).launch{
+            errorCode.value = code
+        }
     }
 
     fun getRepoList(): LiveData<List<GitHubRepo>>?{
