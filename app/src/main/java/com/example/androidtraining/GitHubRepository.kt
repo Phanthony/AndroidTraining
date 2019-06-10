@@ -8,6 +8,7 @@ import io.reactivex.*
 import io.reactivex.rxkotlin.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
 import retrofit2.adapter.rxjava2.Result
@@ -18,7 +19,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted, var service: Service, var day: Day) {
+class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted, var service: Service, var day: Day, var disposable: CompositeDisposable) {
 
     private var lastDay: String? = null
 
@@ -31,13 +32,15 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
 
     //Error Code -> 1 = Unsuccessful, 2 = Successful, 0 = Default state
     fun getDailyRepos(): Single<Result<GitHubRepoList>> {
-        checkYesterday()
         return service.getRepos(day.getYesterday())
     }
 
     // All Database Functions
     private fun deleteAllRepos() {
         db.gitHubRepoDAO().deleteAllRepos()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
     }
 
     private fun insertYesterdayToDatabase() {
@@ -46,9 +49,10 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onComplete = {
-                    lastDay = day.getYesterday()
+                    getLastDayFromDatabase()
                 }
             )
+            .addTo(disposable)
 
         //db.dayDAO().insertDay(DayEntry(day.getYesterday(), 1))
         //lastDay = db.dayDAO().getDay()
@@ -63,6 +67,7 @@ class GitHubRepository(var db: GitHubRepoDataBase, var RepoModel: ReposCompleted
                 onSuccess = {lastDay = it},
                 onError = {}
             )
+            .addTo(disposable)
     }
 
     fun getAllRepos(): LiveData<List<GitHubRepo>>? {

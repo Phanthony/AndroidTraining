@@ -39,25 +39,24 @@ class MainActivity : AppCompatActivity() {
                 adapter.addAll(t)
             }
         })
-        gitHubViewModel.getNetworkError().observe(this, Observer<Int> { errorCode ->
-            if (errorCode == 1){
-                Log.e("Error","Network Call Unsuccessful")
-                networkDialog(this@MainActivity).show()
-                informationToast.cancel()
-                repoSwipeRefresh.isRefreshing = false
-                gitHubViewModel.resetNetworkError()
-            }
-            else if (errorCode == 2){
+        gitHubViewModel.getResultLiveData().observe(this, Observer<Result<List<GitHubRepo>>> { result ->
+            if (result.isSuccess){
                 Log.i("Update","Network Call Successful")
                 TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0", "s")
                 gitHubViewModel.resetLastRefresh()
                 informationToast.cancel()
                 repoSwipeRefresh.isRefreshing = false
-                gitHubViewModel.resetNetworkError()
             }
+            else{
+                Log.e("Error","Network Call Unsuccessful")
+                networkDialog(this@MainActivity).show()
+                informationToast.cancel()
+                repoSwipeRefresh.isRefreshing = false
+            }
+        }
 
+        )
 
-        })
         gitHubViewModel.getMinSinceLastRefresh().observe(this, Observer<Int> { t ->
             val textToBe: String = when (t) {
                 1 -> getString(R.string.minutesPassedSinceRefresh).format("$t", "")
@@ -81,6 +80,11 @@ class MainActivity : AppCompatActivity() {
             informationToast.show()
             gitHubViewModel.getRepos()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        gitHubViewModel.getComposite().clear()
     }
 
     private fun networkDialog(context: Context): AlertDialog.Builder {

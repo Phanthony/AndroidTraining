@@ -28,20 +28,10 @@ abstract class GitHubRepoDataBase : RoomDatabase() {
                     )
                         .fallbackToDestructiveMigration()
                         .build()
-                    //getInstance(context)?.populateDatabaseWithDay()
                 }
                 return instance
             }
         }
     }
 
-    private fun populateDatabaseWithDay() {
-        instance!!.dayDAO().getDayCount()
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .subscribeBy(onSuccess = {if(it == 0){
-                instance!!.dayDAO().insertDay(DayEntry("1998-03-10", 1)).subscribe()
-                }
-            })
-    }
 }

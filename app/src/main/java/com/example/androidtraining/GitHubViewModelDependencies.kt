@@ -5,13 +5,17 @@ import android.os.Handler
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -19,13 +23,14 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
+import androidx.lifecycle.LiveDataReactiveStreams.*
 
 class GitHubViewModelDependencies(application: Application) : AndroidViewModel(application) {
 
     private var minSinceLastRefresh = MutableLiveData<Int>()
-    private var timeInformation = TimeInformation(minSinceLastRefresh)
-
-    private var gitHubViewModelInjected : GitHubViewModelInjected
+    private val timeInformation = TimeInformation(minSinceLastRefresh)
+    private val compositeDisposable : CompositeDisposable
+    private val gitHubViewModelInjected : GitHubViewModelInjected
 
     init {
         val dataBase = GitHubRepoDataBase.getInstance(application)!!
@@ -39,7 +44,8 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
                 .create(GitHubApi::class.java)
         )
         val dayInformation = DayInformation()
-        val gitHubRepository = GitHubRepository(dataBase, gitHubModel, retrofitService,dayInformation)
+        compositeDisposable = CompositeDisposable()
+        val gitHubRepository = GitHubRepository(dataBase, gitHubModel, retrofitService,dayInformation,compositeDisposable)
         gitHubViewModelInjected = GitHubViewModelInjected(gitHubRepository)
         gitHubViewModelInjected.initialSetup()
         //Set up time handler
@@ -50,10 +56,6 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         gitHubViewModelInjected.getRepos()
     }
 
-    fun getNetworkError(): LiveData<Int> {
-        return gitHubViewModelInjected.getErrorCode()
-    }
-
     fun getRepoList(): LiveData<List<GitHubRepo>>? {
         return gitHubViewModelInjected.getRepoList()
     }
@@ -62,24 +64,23 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         return minSinceLastRefresh
     }
 
-    fun resetNetworkError() {
-       gitHubViewModelInjected.setErrorCode()
-    }
-
     fun resetLastRefresh() {
         timeInformation.resetLastRefresh()
+    }
+
+    fun getComposite(): CompositeDisposable {
+        return compositeDisposable
+    }
+
+    fun getResultLiveData():LiveData<Result<List<GitHubRepo>>>{
+        return gitHubViewModelInjected.getResultLiveData()
     }
 }
 
 class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
-
-    val mComposite = CompositeDisposable()
-
-    val FAILURE = 1
-    val SUCCESS = 2
-
-    private var errorCode = MutableLiveData<Int>()
     private var repoList = gitHubRepository.getAllRepos()
+
+    private var resultLiveData : MutableLiveData<Result<List<GitHubRepo>>> = MutableLiveData()
 
     fun getRepos(){
         val gitHubRepoListSingle = gitHubRepository.getDailyRepos()
@@ -88,19 +89,34 @@ class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
             .subscribeBy(
             onSuccess = {
                 when(it.isError){
-                false -> {Observable.fromIterable(it.response()!!.body()!!.items)
+                false -> {gitHubRepository.checkYesterday()
+                    Observable.fromIterable(it.response()!!.body()!!.items)
                     .observeOn(Schedulers.io())
                     .subscribeOn(Schedulers.io())
                     .subscribeBy(
-                        onNext = {gitHubRepository.RepoModel.saveRepos(it)},
+                        onNext = { repo -> gitHubRepository.RepoModel.saveRepos(repo)},
                         onComplete = {
-                            setErrorCode(SUCCESS)})}
-                else -> {setErrorCode(FAILURE)}
+                            repoLiveDataSuccess()})}
+                else -> {repoLiveDataFail(it.error()!!)}
             }},
-            onError = {setErrorCode(FAILURE)}
+            onError = {repoLiveDataFail(it)}
         )
-            .addTo(mComposite)
-    } 
+            .addTo(gitHubRepository.disposable)
+    }
+
+    fun repoLiveDataFail(error: Throwable){
+        val resultFail = Result.failure<List<GitHubRepo>>(error)
+        CoroutineScope(Dispatchers.Main).launch{
+            resultLiveData.value = resultFail
+        }
+    }
+
+    fun repoLiveDataSuccess() {
+        val resultSuccess = Result.success<List<GitHubRepo>>(listOf())
+        CoroutineScope(Dispatchers.Main).launch {
+            resultLiveData.value = resultSuccess
+        }
+    }
 
     fun initialSetup() {
         //Set up lastday parameter in the repository
@@ -115,21 +131,16 @@ class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
                     getRepos()
                 }}
             )
+            .addTo(gitHubRepository.disposable)
 
-    }
-
-    fun getErrorCode(): LiveData<Int>{
-        return errorCode
-    }
-
-    fun setErrorCode(code:Int = 0){
-        CoroutineScope(Dispatchers.Main).launch{
-            errorCode.value = code
-        }
     }
 
     fun getRepoList(): LiveData<List<GitHubRepo>>?{
         return repoList
+    }
+
+    fun getResultLiveData():LiveData<Result<List<GitHubRepo>>>{
+        return resultLiveData
     }
 }
 
