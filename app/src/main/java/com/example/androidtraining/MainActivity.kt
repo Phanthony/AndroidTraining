@@ -3,6 +3,8 @@ package com.example.androidtraining
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
+import android.os.Handler
+import android.text.format.DateUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -12,6 +14,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -20,49 +23,51 @@ class MainActivity : AppCompatActivity() {
     private lateinit var informationToast: Toast
     private lateinit var repoSwipeRefresh: SwipeRefreshLayout
     private val adapter = RecyclerViewAdapter(arrayListOf(), this)
-
+    private var lastTime = System.currentTimeMillis()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //set up last updated time
+        timeHandler().run()
         //set up toast to display information
-        informationToast = Toast.makeText(this@MainActivity, "Fetching Repos", Toast.LENGTH_LONG)
+        informationToast = Toast.makeText(this@MainActivity, getString(R.string.fetchRepos), Toast.LENGTH_LONG)
         //set up ViewModel
         gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModelDependencies::class.java)
-
-        adapter.addAll(gitHubViewModel.getRepoList()?.value)
         //set up observers
-        gitHubViewModel.getRepoList()?.observe(this, Observer<List<GitHubRepo>> { t ->
-            if(t != null) {
-                adapter.clear()
-                adapter.addAll(t)
+        gitHubViewModel.getRepoObservable().observe(this, Observer<OnlineCacheState<List<GitHubRepo>>> { cacheStatus ->
+            cacheStatus.apply {
+                whenNoCache { isFetching, errorDuringFetch ->
+                    gitHubViewModel.clearDB()
+                    if(!isFetching){
+                        if(errorDuringFetch != null){
+                            informationToast.cancel()
+                            repoSwipeRefresh.isRefreshing = false
+                            networkDialog(this@MainActivity).show()
+                        }
+                    }
+                }
+                whenCache { cache, lastSuccessfulFetch, isFetching, justSuccessfullyFetched, errorDuringFetch ->
+                    if (!isFetching) {
+                        if (errorDuringFetch != null) {
+                            informationToast.cancel()
+                            repoSwipeRefresh.isRefreshing = false
+                            networkDialog(this@MainActivity).show()
+                        } else {
+                            if (cache != null) {
+                                adapter.clear()
+                                adapter.addAll(cache)
+                            }
+                            if(justSuccessfullyFetched) {
+                                informationToast.cancel()
+                                repoSwipeRefresh.isRefreshing = false
+                                lastTime = lastSuccessfulFetch.time
+                            }
+                        }
+                    }
+                }
             }
-        })
-        gitHubViewModel.getResultLiveData().observe(this, Observer<Result<List<GitHubRepo>>> { result ->
-            if (result.isSuccess){
-                Log.i("Update","Network Call Successful")
-                TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("0", "s")
-                gitHubViewModel.resetLastRefresh()
-                informationToast.cancel()
-                repoSwipeRefresh.isRefreshing = false
-            }
-            else{
-                Log.e("Error","Network Call Unsuccessful")
-                networkDialog(this@MainActivity).show()
-                informationToast.cancel()
-                repoSwipeRefresh.isRefreshing = false
-            }
-        }
-
-        )
-
-        gitHubViewModel.getMinSinceLastRefresh().observe(this, Observer<Int> { t ->
-            val textToBe: String = when (t) {
-                1 -> getString(R.string.minutesPassedSinceRefresh).format("$t", "")
-                else -> getString(R.string.minutesPassedSinceRefresh).format("$t", "s")
-            }
-            TextViewRefreshTime.text = textToBe
         })
 
         //Set up Toolbar
@@ -78,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         //Set up the Refresh Listener to update the recycle view
         repoSwipeRefresh.setOnRefreshListener {
             informationToast.show()
-            gitHubViewModel.getRepos()
+            gitHubViewModel.userRefresh()
         }
     }
 
@@ -89,10 +94,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun networkDialog(context: Context): AlertDialog.Builder {
         val builder = AlertDialog.Builder(context)
-        builder.setTitle("Error")
-        builder.setMessage("A network failure occurred")
-        builder.setPositiveButton("Ok") { _: DialogInterface?, _: Int ->
+        builder.setTitle(getString(R.string.error))
+        builder.setMessage(getString(R.string.genericNetworkError))
+        builder.setPositiveButton(getString(R.string.Ok)) { _: DialogInterface?, _: Int ->
         }
         return builder
+    }
+
+    private fun timeHandler(): java.lang.Runnable {
+        val timeHandler = Handler()
+        return object : Runnable {
+            override fun run() {
+                val lastUpdated = DateUtils.getRelativeTimeSpanString(lastTime,System.currentTimeMillis(),DateUtils.SECOND_IN_MILLIS)
+                TextViewRefreshTime.text = getString(R.string.minutesPassedSinceRefresh).format("$lastUpdated")
+                timeHandler.postDelayed(this,100)
+            }
+        }
     }
 }

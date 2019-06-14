@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Android Training</string>
     <string name="action_settings">Settings</string>
-    <string name="minutesPassedSinceRefresh">%s minute%s since the last refresh</string>
+    <string name="minutesPassedSinceRefresh">Last updated %s</string>
     <string name="authorAndRepoName">%s / %s</string>
     <string name="dailyStars">%s star%s today</string>
     <string name="networkDialogMessage">A Network failure occurred</string>
@@ -9,4 +9,7 @@
     <string name="trendingTitle">Top Kotlin repos past 24 hours</string>
     <string name="noDescAvail">No Description Available</string>
     <string name="trending">Trending</string>
+    <string name="genericNetworkError">A network failure occurred</string>
+    <string name="fetchRepos">Fetching Repos</string>
+    <string name="error">Error</string>
 </resources>

@@ -1,40 +1,36 @@
 package com.example.androidtraining
 
 import android.app.Application
-import android.os.Handler
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import io.reactivex.Flowable
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import androidx.lifecycle.LiveDataReactiveStreams.*
+import com.levibostian.teller.cachestate.OnlineCacheState
+import com.levibostian.teller.repository.OnlineRepository
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.addTo
+import retrofit2.adapter.rxjava2.Result
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
-import androidx.lifecycle.LiveDataReactiveStreams.*
 
 class GitHubViewModelDependencies(application: Application) : AndroidViewModel(application) {
 
-    private var minSinceLastRefresh = MutableLiveData<Int>()
-    private val timeInformation = TimeInformation(minSinceLastRefresh)
-    private val compositeDisposable : CompositeDisposable
-    private val gitHubViewModelInjected : GitHubViewModelInjected
+    private val compositeDisposable: CompositeDisposable
+    private val gitHubViewModelInjected: GitHubViewModelInjected
+    private val dataBase: GitHubRepoDataBase = GitHubRepoDataBase.getInstance(application)!!
+    private val tellerRepository : TellerOnlineRepository
 
     init {
-        val dataBase = GitHubRepoDataBase.getInstance(application)!!
-        val gitHubModel = ReposCompletedDatabase(dataBase)
         val retrofitService = RetroFitService(
             Retrofit.Builder()
                 .baseUrl("https://api.github.com/")
@@ -45,139 +41,81 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         )
         val dayInformation = DayInformation()
         compositeDisposable = CompositeDisposable()
-        val gitHubRepository = GitHubRepository(dataBase, gitHubModel, retrofitService,dayInformation,compositeDisposable)
-        gitHubViewModelInjected = GitHubViewModelInjected(gitHubRepository)
+        tellerRepository = TellerOnlineRepository(dataBase, retrofitService)
+        gitHubViewModelInjected = GitHubViewModelInjected(tellerRepository, dayInformation)
         gitHubViewModelInjected.initialSetup()
-        //Set up time handler
-        timeInformation.timeHandler().run()
-    }
-
-    fun getRepos() {
-        gitHubViewModelInjected.getRepos()
-    }
-
-    fun getRepoList(): LiveData<List<GitHubRepo>>? {
-        return gitHubViewModelInjected.getRepoList()
-    }
-
-    fun getMinSinceLastRefresh(): LiveData<Int> {
-        return minSinceLastRefresh
-    }
-
-    fun resetLastRefresh() {
-        timeInformation.resetLastRefresh()
     }
 
     fun getComposite(): CompositeDisposable {
         return compositeDisposable
     }
 
-    fun getResultLiveData():LiveData<Result<List<GitHubRepo>>>{
-        return gitHubViewModelInjected.getResultLiveData()
+    fun getRepoObservable(): LiveData<OnlineCacheState<List<GitHubRepo>>> {
+        val observable = gitHubViewModelInjected.getAllReposObservable()
+        return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
+    }
+
+    fun userRefresh(){
+        gitHubViewModelInjected.updateTellerRequirement()
+        gitHubViewModelInjected.refreshCache()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+            .addTo(compositeDisposable)
+    }
+
+    fun clearDB(){
+        dataBase.gitHubRepoDAO().deleteAllRepos()
+            .subscribeOn(Schedulers.io())
+            .subscribe()
+            .addTo(compositeDisposable)
     }
 }
 
-class GitHubViewModelInjected(private var gitHubRepository: GitHubRepository) {
-    private var repoList = gitHubRepository.getAllRepos()
+class GitHubViewModelInjected(private val repository: TellerOnlineRepository, private val day: DayInformation) {
 
-    private var resultLiveData : MutableLiveData<Result<List<GitHubRepo>>> = MutableLiveData()
-
-    fun getRepos(){
-        val gitHubRepoListSingle = gitHubRepository.getDailyRepos()
-        gitHubRepoListSingle
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-            onSuccess = {
-                when(it.isError){
-                false -> {gitHubRepository.checkYesterday()
-                    Observable.fromIterable(it.response()!!.body()!!.items)
-                    .observeOn(Schedulers.io())
-                    .subscribeOn(Schedulers.io())
-                    .subscribeBy(
-                        onNext = { repo -> gitHubRepository.RepoModel.saveRepos(repo)},
-                        onComplete = {
-                            repoLiveDataSuccess()})}
-                else -> {repoLiveDataFail(it.error()!!)}
-            }},
-            onError = {repoLiveDataFail(it)}
-        )
-            .addTo(gitHubRepository.disposable)
+    fun updateTellerRequirement(){
+        val repoRequirements = TellerOnlineRepository.GetReposRequirement(day.getYesterday())
+        repository.requirements = repoRequirements
     }
 
-    fun repoLiveDataFail(error: Throwable){
-        val resultFail = Result.failure<List<GitHubRepo>>(error)
-        CoroutineScope(Dispatchers.Main).launch{
-            resultLiveData.value = resultFail
-        }
-    }
-
-    fun repoLiveDataSuccess() {
-        val resultSuccess = Result.success<List<GitHubRepo>>(listOf())
-        CoroutineScope(Dispatchers.Main).launch {
-            resultLiveData.value = resultSuccess
-        }
+    fun getRepos(): Single<OnlineRepository.FetchResponse<GitHubRepoList>> {
+        val repoRequirements = TellerOnlineRepository.GetReposRequirement(day.getYesterday())
+        repository.requirements = repoRequirements
+        return repository.fetchFreshCache(repoRequirements)
     }
 
     fun initialSetup() {
-        //Set up lastday parameter in the repository
-        gitHubRepository.getLastDayFromDatabase()
-        // Initial pull if there is no data in the database
-
-        gitHubRepository.getRepoCount()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = {if(it == 0){
-                    getRepos()
-                }}
-            )
-            .addTo(gitHubRepository.disposable)
-
+        updateTellerRequirement()
     }
 
-    fun getRepoList(): LiveData<List<GitHubRepo>>?{
-        return repoList
+    fun getAllReposObservable(): Observable<OnlineCacheState<List<GitHubRepo>>> {
+        return repository.observe()
     }
 
-    fun getResultLiveData():LiveData<Result<List<GitHubRepo>>>{
-        return resultLiveData
+    fun refreshCache(): Single<OnlineRepository.RefreshResult> {
+        return repository.refresh(true)
     }
 }
 
-class TimeInformation(private var minSinceLastRefresh: MutableLiveData<Int>) {
+class RetroFitService(private var service: GitHubApi) : Service {
+    override fun getRepos(day: String): Single<Result<GitHubRepoList>> {
+        return service.getRepo("created:%3E$day+language:kotlin+stars:%3E0")
+    }
+}
 
-    private var lastRefreshed = getTime()
+interface Service {
+    fun getRepos(day: String): Single<Result<GitHubRepoList>>
+}
 
-    fun getTime(): String {
-        return (DateTimeFormatter.ofPattern("k:m:D")
+class DayInformation: Day{
+    override fun getYesterday(): String {
+        return (DateTimeFormatter.ofPattern("yyyy-MM-dd")
             .withLocale(Locale.US)
             .withZone(ZoneId.systemDefault()))
-            .format(Instant.now())
+            .format(Instant.now().minus(Duration.ofDays(1)))
     }
+}
 
-    fun timePassed(initialTime: String, currentTime: String): Int {
-        val initialTimeList = initialTime.split(":")
-        val currentTimeList = currentTime.split(":")
-
-        val daysPassed = currentTimeList[2].toInt() - initialTimeList[2].toInt()
-        val hoursPassed = currentTimeList[0].toInt() - initialTimeList[0].toInt()
-        var minutesPassed = 60 * hoursPassed + 1440 * daysPassed
-        minutesPassed += currentTimeList[1].toInt() - initialTimeList[1].toInt()
-        return minutesPassed
-    }
-
-    fun timeHandler(): java.lang.Runnable {
-        val timeHandler = Handler()
-        return object : Runnable {
-            override fun run() {
-                val minutesPassed = timePassed(lastRefreshed, getTime())
-                minSinceLastRefresh.value = minutesPassed
-                timeHandler.postDelayed(this, 60000)
-            }
-        }
-    }
-
-    fun resetLastRefresh() {
-        lastRefreshed = getTime()
-    }
+interface Day{
+    fun getYesterday(): String
 }
