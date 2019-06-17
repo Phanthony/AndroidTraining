@@ -7,6 +7,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nhaarman.mockitokotlin2.whenever
+import io.reactivex.Single
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType
@@ -22,6 +23,7 @@ import org.mockito.MockitoAnnotations
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.Result
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.mock.BehaviorDelegate
 import retrofit2.mock.Calls
@@ -37,11 +39,11 @@ class GitHubViewModelIntegrationTests {
     var instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private fun generateRepoList(): List<GitHubRepo> {
-        val test1 = GitHubRepo("test1", GitHubRepoOwner("testLogin1"), 10, null, 1)
-        val test2 = (GitHubRepo("test2", GitHubRepoOwner("testLogin2"), 1, "testDesc2", 6))
-        val test3 = (GitHubRepo("test3", GitHubRepoOwner("testLogin3"), 89, "testDesc3", 7))
-        val test4 = (GitHubRepo("test4", GitHubRepoOwner("testLogin4"), 53, null, 8))
-        val test5 = (GitHubRepo("test5", GitHubRepoOwner("testLogin5"), 27, "testDesc5", 9))
+        val test1 = GitHubRepo("test1", GitHubRepoOwner("testLogin1","https://avatars1.githubusercontent.com/u/930751?v=4"), 10, null, 1)
+        val test2 = (GitHubRepo("test2", GitHubRepoOwner("testLogin2","https://avatars1.githubusercontent.com/u/930751?v=4"), 1, "testDesc2", 6))
+        val test3 = (GitHubRepo("test3", GitHubRepoOwner("testLogin3","https://avatars1.githubusercontent.com/u/930751?v=4"), 89, "testDesc3", 7))
+        val test4 = (GitHubRepo("test4", GitHubRepoOwner("testLogin4","https://avatars1.githubusercontent.com/u/930751?v=4"), 53, null, 8))
+        val test5 = (GitHubRepo("test5", GitHubRepoOwner("testLogin5","https://avatars1.githubusercontent.com/u/930751?v=4"), 27, "testDesc5", 9))
         return listOf(test1, test2, test3, test4, test5)
     }
 
@@ -54,7 +56,7 @@ class GitHubViewModelIntegrationTests {
     class MockGitHubApiFail(var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
         private val mockFail = IOException("Failed")
         var failure: Call<GitHubRepoList> = Calls.failure(mockFail)
-        override fun getRepo(q: String): Call<GitHubRepoList> {
+        override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
             return delegate.returning(failure).getRepo("")
         }
     }
@@ -63,13 +65,13 @@ class GitHubViewModelIntegrationTests {
         var failure: Call<GitHubRepoList> =
             Calls.response(Response.error(400, ResponseBody.create(MediaType.parse(""), "")))
 
-        override fun getRepo(q: String): Call<GitHubRepoList> {
+        override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
             return delegate.returning(failure).getRepo("")
         }
     }
 
     class MockGitHubApiSuccess(var delegate: BehaviorDelegate<GitHubApi>, var gitHubRepoList: GitHubRepoList) : GitHubApi {
-        override fun getRepo(q: String): Call<GitHubRepoList> {
+        override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
             return delegate.returningResponse(gitHubRepoList).getRepo("")
         }
     }
@@ -82,14 +84,11 @@ class GitHubViewModelIntegrationTests {
 
     private lateinit var mDB: GitHubRepoDataBase
     private lateinit var gitHubRepoDAO: GitHubRepoDAO
-    private lateinit var dayEntryDataDAO: DayEntryDataDAO
 
     @Mock lateinit var mDay: Day
     @Mock lateinit var listObserver: Observer<List<GitHubRepo>>
     @Mock lateinit var codeObserver: Observer<Int>
     @Mock lateinit var mService: Service
-    lateinit var model: ReposCompletedDatabase
-    lateinit var mRepository: GitHubRepository
 
     lateinit var gitHubViewModelInjected: GitHubViewModelInjected
 
@@ -117,9 +116,7 @@ class GitHubViewModelIntegrationTests {
         val context = ApplicationProvider.getApplicationContext<Context>()
         mDB = Room.inMemoryDatabaseBuilder(context, GitHubRepoDataBase::class.java).allowMainThreadQueries().build()
         gitHubRepoDAO = mDB.gitHubRepoDAO()
-        dayEntryDataDAO = mDB.dayDAO()
         //Set up Repository with mock objects
-        model = ReposCompletedDatabase(mDB)
         mRepository = GitHubRepository(mDB, model, mService,mDay)
         //Set up viewmodel with mock objects
         gitHubViewModelInjected = GitHubViewModelInjected(mRepository)

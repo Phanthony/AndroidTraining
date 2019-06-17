@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 
-@Database(entities = [GitHubRepo::class], version = 29)
+@Database(entities = [GitHubRepo::class], version = 31)
 abstract class GitHubRepoDataBase : RoomDatabase() {
 
     abstract fun gitHubRepoDAO(): GitHubRepoDAO

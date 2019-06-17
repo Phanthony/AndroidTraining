@@ -21,14 +21,14 @@ class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
         val repoImage = itemView.RepoImage!!
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerViewAdapter.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layout = LayoutInflater.from(parent.context).inflate(R.layout.repolayout,parent,false)
         return ViewHolder(layout)
     }
 
     override fun getItemCount() = repoList.size
 
-    override fun onBindViewHolder(holder: RecyclerViewAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentRepo = repoList[position]
         val textToBeRepoStars = when(currentRepo.getStargazers_count()){
             1 -> context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","")

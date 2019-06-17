@@ -5,7 +5,6 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.text.format.DateUtils
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -44,7 +43,7 @@ class MainActivity : AppCompatActivity() {
                         if(errorDuringFetch != null){
                             informationToast.cancel()
                             repoSwipeRefresh.isRefreshing = false
-                            networkDialog(this@MainActivity).show()
+                            networkDialog(this@MainActivity,errorDuringFetch.message).show()
                         }
                     }
                 }
@@ -53,7 +52,7 @@ class MainActivity : AppCompatActivity() {
                         if (errorDuringFetch != null) {
                             informationToast.cancel()
                             repoSwipeRefresh.isRefreshing = false
-                            networkDialog(this@MainActivity).show()
+                            networkDialog(this@MainActivity,errorDuringFetch.message).show()
                         } else {
                             if (cache != null) {
                                 adapter.clear()
@@ -92,10 +91,14 @@ class MainActivity : AppCompatActivity() {
         gitHubViewModel.getComposite().clear()
     }
 
-    private fun networkDialog(context: Context): AlertDialog.Builder {
+    private fun networkDialog(context: Context, errorMessage: String?): AlertDialog.Builder {
         val builder = AlertDialog.Builder(context)
         builder.setTitle(getString(R.string.error))
-        builder.setMessage(getString(R.string.genericNetworkError))
+        val message = when(errorMessage){
+            null -> {getString(R.string.genericNetworkError)}
+            else -> errorMessage
+        }
+        builder.setMessage(message)
         builder.setPositiveButton(getString(R.string.Ok)) { _: DialogInterface?, _: Int ->
         }
         return builder

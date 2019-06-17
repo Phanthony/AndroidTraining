@@ -80,7 +80,6 @@ class GitHubViewModelInjected(private val repository: TellerOnlineRepository, pr
 
     fun getRepos(): Single<OnlineRepository.FetchResponse<GitHubRepoList>> {
         val repoRequirements = TellerOnlineRepository.GetReposRequirement(day.getYesterday())
-        repository.requirements = repoRequirements
         return repository.fetchFreshCache(repoRequirements)
     }
 
