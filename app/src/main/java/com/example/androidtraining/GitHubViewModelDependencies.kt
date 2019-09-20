@@ -56,39 +56,30 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
     }
 
     fun userRefresh(){
-        gitHubViewModelInjected.updateTellerRequirement()
         gitHubViewModelInjected.refreshCache()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe()
             .addTo(compositeDisposable)
     }
 
-    fun clearDB(){
-        dataBase.gitHubRepoDAO().deleteAllRepos()
-            .subscribeOn(Schedulers.io())
-            .subscribe()
-            .addTo(compositeDisposable)
+    fun getCache(): Single<OnlineRepository.FetchResponse<GitHubRepoList>>{
+        return gitHubViewModelInjected.getCache()
     }
 }
 
 class GitHubViewModelInjected(private val repository: TellerOnlineRepository, private val day: DayInformation) {
 
-    fun updateTellerRequirement(){
-        val repoRequirements = TellerOnlineRepository.GetReposRequirement(day.getYesterday())
-        repository.requirements = repoRequirements
-    }
-
-    fun getRepos(): Single<OnlineRepository.FetchResponse<GitHubRepoList>> {
-        val repoRequirements = TellerOnlineRepository.GetReposRequirement(day.getYesterday())
-        return repository.fetchFreshCache(repoRequirements)
-    }
-
     fun initialSetup() {
-        updateTellerRequirement()
+        val repoRequirements = TellerOnlineRepository.GetReposRequirement(day)
+        repository.requirements = repoRequirements
     }
 
     fun getAllReposObservable(): Observable<OnlineCacheState<List<GitHubRepo>>> {
         return repository.observe()
+    }
+
+    fun getCache(): Single<OnlineRepository.FetchResponse<GitHubRepoList>>{
+        return repository.fetchFreshCache(repository.requirements!!)
     }
 
     fun refreshCache(): Single<OnlineRepository.RefreshResult> {

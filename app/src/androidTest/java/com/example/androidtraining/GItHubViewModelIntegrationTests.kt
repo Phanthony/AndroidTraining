@@ -1,15 +1,21 @@
 package com.example.androidtraining
 
 import android.content.Context
+import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.nhaarman.mockitokotlin2.whenever
+import androidx.test.platform.app.InstrumentationRegistry
+import com.google.common.truth.Truth.assertThat
+import com.levibostian.teller.Teller
+import com.levibostian.teller.cachestate.OnlineCacheState
+import com.levibostian.teller.repository.OnlineRepository
+import com.levibostian.teller.testing.extensions.cache
+import com.levibostian.teller.testing.extensions.initState
 import io.reactivex.Single
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
+import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.android.awaitFrame
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import org.junit.After
@@ -17,13 +23,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.Result
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.mock.BehaviorDelegate
 import retrofit2.mock.Calls
@@ -36,14 +42,47 @@ import java.util.concurrent.TimeUnit
 class GitHubViewModelIntegrationTests {
 
     @get:Rule
-    var instantTaskExecutorRule = InstantTaskExecutorRule()
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    @get:Rule
+    val tellerInit = TellerInitRule()
 
     private fun generateRepoList(): List<GitHubRepo> {
-        val test1 = GitHubRepo("test1", GitHubRepoOwner("testLogin1","https://avatars1.githubusercontent.com/u/930751?v=4"), 10, null, 1)
-        val test2 = (GitHubRepo("test2", GitHubRepoOwner("testLogin2","https://avatars1.githubusercontent.com/u/930751?v=4"), 1, "testDesc2", 6))
-        val test3 = (GitHubRepo("test3", GitHubRepoOwner("testLogin3","https://avatars1.githubusercontent.com/u/930751?v=4"), 89, "testDesc3", 7))
-        val test4 = (GitHubRepo("test4", GitHubRepoOwner("testLogin4","https://avatars1.githubusercontent.com/u/930751?v=4"), 53, null, 8))
-        val test5 = (GitHubRepo("test5", GitHubRepoOwner("testLogin5","https://avatars1.githubusercontent.com/u/930751?v=4"), 27, "testDesc5", 9))
+        val test1 = GitHubRepo(
+            "test1",
+            GitHubRepoOwner("testLogin1", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            10,
+            null,
+            1
+        )
+        val test2 = (GitHubRepo(
+            "test2",
+            GitHubRepoOwner("testLogin2", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            1,
+            "testDesc2",
+            6
+        ))
+        val test3 = (GitHubRepo(
+            "test3",
+            GitHubRepoOwner("testLogin3", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            89,
+            "testDesc3",
+            7
+        ))
+        val test4 = (GitHubRepo(
+            "test4",
+            GitHubRepoOwner("testLogin4", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            53,
+            null,
+            8
+        ))
+        val test5 = (GitHubRepo(
+            "test5",
+            GitHubRepoOwner("testLogin5", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            27,
+            "testDesc5",
+            9
+        ))
         return listOf(test1, test2, test3, test4, test5)
     }
 
@@ -53,16 +92,16 @@ class GitHubViewModelIntegrationTests {
         networkBehavior.setFailurePercent(failPercent)
     }
 
-    class MockGitHubApiFail(var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
+    class MockGitHubApiFail(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
         private val mockFail = IOException("Failed")
-        var failure: Call<GitHubRepoList> = Calls.failure(mockFail)
+        private var failure: Call<GitHubRepoList> = Calls.failure(mockFail)
         override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
             return delegate.returning(failure).getRepo("")
         }
     }
 
-    class MockGitHubApiResponseFail(var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
-        var failure: Call<GitHubRepoList> =
+    class MockGitHubApiResponseFail(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
+        private var failure: Call<GitHubRepoList> =
             Calls.response(Response.error(400, ResponseBody.create(MediaType.parse(""), "")))
 
         override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
@@ -70,67 +109,56 @@ class GitHubViewModelIntegrationTests {
         }
     }
 
-    class MockGitHubApiSuccess(var delegate: BehaviorDelegate<GitHubApi>, var gitHubRepoList: GitHubRepoList) : GitHubApi {
+    class MockGitHubApiResponseFail500Error(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
+        private var failure: Call<GitHubRepoList> =
+            Calls.response(Response.error(500, ResponseBody.create(MediaType.parse(""), "")))
+
+        override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
+            return delegate.returning(failure).getRepo("")
+        }
+    }
+
+    class MockGitHubApiSuccess(
+        private var delegate: BehaviorDelegate<GitHubApi>,
+        private var gitHubRepoList: GitHubRepoList
+    ) : GitHubApi {
         override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
             return delegate.returningResponse(gitHubRepoList).getRepo("")
         }
     }
 
+    private fun createRepository(service: GitHubApi) {
+        onlineRepository = TellerOnlineRepository(mDB, RetroFitService(service))
+        gitHubViewModelInjected = GitHubViewModelInjected(onlineRepository, mday)
+    }
+
+    private var mday = DayInformation()
+    private var requirements = TellerOnlineRepository.GetReposRequirement(mday)
     private lateinit var retrofit: Retrofit
     private lateinit var networkBehavior: NetworkBehavior
     private lateinit var mockRetrofit: MockRetrofit
     private lateinit var delegate: BehaviorDelegate<GitHubApi>
-    lateinit var mGitHubApi: GitHubApi
+    private lateinit var mGitHubApi: GitHubApi
 
     private lateinit var mDB: GitHubRepoDataBase
     private lateinit var gitHubRepoDAO: GitHubRepoDAO
 
-    @Mock lateinit var mDay: Day
-    @Mock lateinit var listObserver: Observer<List<GitHubRepo>>
-    @Mock lateinit var codeObserver: Observer<Int>
-    @Mock lateinit var mService: Service
+    private lateinit var onlineRepository: TellerOnlineRepository
 
-    lateinit var gitHubViewModelInjected: GitHubViewModelInjected
-
-    private fun clearDatabase() {
-        runBlocking {
-            gitHubRepoDAO.deleteAllRepos()
-        }
-    }
-
-    private fun populateDatabase() {
-        runBlocking {
-            gitHubRepoDAO.insert(GitHubRepo("test1", GitHubRepoOwner("testLogin1"), 10, null, 1))
-            gitHubRepoDAO.insert(GitHubRepo("test2", GitHubRepoOwner("testLogin2"), 1, "testDesc2", 2))
-            gitHubRepoDAO.insert(GitHubRepo("test3", GitHubRepoOwner("testLogin3"), 89, "testDesc3", 3))
-            gitHubRepoDAO.insert(GitHubRepo("test4", GitHubRepoOwner("testLogin4"), 53, null, 4))
-            gitHubRepoDAO.insert(GitHubRepo("test5", GitHubRepoOwner("testLogin5"), 27, "testDesc5", 5))
-        }
-    }
+    private lateinit var gitHubViewModelInjected: GitHubViewModelInjected
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
-        whenever(mDay.getYesterday()).thenReturn("1998-03-10")
+
         //Set up mock database
         val context = ApplicationProvider.getApplicationContext<Context>()
-        mDB = Room.inMemoryDatabaseBuilder(context, GitHubRepoDataBase::class.java).allowMainThreadQueries().build()
+        mDB = Room.inMemoryDatabaseBuilder(context, GitHubRepoDataBase::class.java).allowMainThreadQueries().fallbackToDestructiveMigration().build()
         gitHubRepoDAO = mDB.gitHubRepoDAO()
-        //Set up Repository with mock objects
-        mRepository = GitHubRepository(mDB, model, mService,mDay)
-        //Set up viewmodel with mock objects
-        gitHubViewModelInjected = GitHubViewModelInjected(mRepository)
-        //prevent the initial pull in initialsetup by pre populating the database
-        populateDatabase()
-        runBlocking {
-            //prepopulate the day part of the database
-            dayEntryDataDAO.insertDay(DayEntry("1998-03-10", 1))
-            gitHubViewModelInjected.initialSetup()
-        }
         //Set up mock retrofit
         retrofit = Retrofit.Builder()
             .baseUrl("https://api.github.com/")
             .addConverterFactory(MoshiConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
             .build()
         networkBehavior = NetworkBehavior.create()
         mockRetrofit = MockRetrofit.Builder(retrofit)
@@ -142,176 +170,168 @@ class GitHubViewModelIntegrationTests {
 
     @After
     fun close() {
-        mDB.close()
-    }
-
-    @Test
-    fun testRepoCount1() {
-        runBlocking {
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
-        }
-    }
-
-    @Test
-    fun testRepoCount2() {
-        clearDatabase()
-        runBlocking {
-            assertEquals(0, gitHubRepoDAO.getRepoCount())
-        }
-    }
-
-    @Test
-    fun testRepoCount3() {
-        runBlocking {
-            gitHubRepoDAO.insert(GitHubRepo("title", GitHubRepoOwner("fakeName"), 1, null, 7))
-            assertEquals(6, gitHubRepoDAO.getRepoCount())
-        }
+        mDB.clearAllTables()
+        onlineRepository.dispose()
     }
 
     @Test
     fun testInsertReplace() {
-        runBlocking {
-            gitHubRepoDAO.insert(GitHubRepo("title", GitHubRepoOwner("fakeName"), 1, null, 1))
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
-        }
+        mGitHubApi = MockGitHubApiFail(delegate)
+        createRepository(mGitHubApi)
+        gitHubRepoDAO.insert(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 1, null, 1))
+        gitHubRepoDAO.insert(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 10, "fake description", 1))
+        assertEquals(1, gitHubRepoDAO.getRepoCount().blockingGet())
     }
 
     @Test
-    fun testcheckYesterday1() {
-        runBlocking {
-            whenever(mDay.getYesterday()).thenReturn("1998-03-10")
-            mRepository.checkYesterday()
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
-        }
-    }
-
-    @Test
-    fun testcheckYesterday2() {
-        runBlocking {
-            whenever(mDay.getYesterday()).thenReturn("2019-03-10")
-            mRepository.checkYesterday()
-            assertEquals(0, gitHubRepoDAO.getRepoCount())
-        }
-    }
-
-    @Test
-    fun testretrofitReturnsList() {
+    fun testOnlineRepositoryFetchSuccess() {
         changeNetworkBehaviour(0)
         val mGithubReposList = GitHubRepoList(generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        runBlocking {
-            val completed = mRetrofitService.getRepos("1998-03-10")
-            assertEquals(mGithubReposList, completed)
-        }
+        createRepository(mGitHubApi)
+        val test = onlineRepository.fetchFreshCache(requirements).blockingGet()
+        assertEquals(true, test.isSuccessful())
+        assertEquals(mGithubReposList, test.response)
+
     }
 
     @Test
-    fun testretrofitReturnsIOException() {
-        changeNetworkBehaviour(100)
-        mGitHubApi = MockGitHubApiFail(delegate)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        runBlocking {
-            val completed = mRetrofitService.getRepos("1998-03-10")
-            assertEquals(null, completed)
-        }
-    }
-
-    @Test
-    fun testretrofitReturnsUnsuccessfulResponse() {
+    fun testOnlineRepositoryFetchSuccessErrorCodeJsonError() {
         changeNetworkBehaviour(0)
         mGitHubApi = MockGitHubApiResponseFail(delegate)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        runBlocking {
-            val completed = mRetrofitService.getRepos("1998-03-10")
-            assertEquals(null, completed)
-        }
+        createRepository(mGitHubApi)
+        val test = onlineRepository.fetchFreshCache(requirements).blockingGet()
+        assertEquals(false, test.isSuccessful())
+        assertEquals(true, (test.failure is JsonError))
     }
 
     @Test
-    fun testGrabsReposAndStoresIntoDatabase() {
+    fun testOnlineRepositoryFetchSuccessErrorCodeUnhandledError() {
+        changeNetworkBehaviour(0)
+        mGitHubApi = MockGitHubApiResponseFail500Error(delegate)
+        createRepository(mGitHubApi)
+        val test = onlineRepository.fetchFreshCache(requirements).blockingGet()
+        assertEquals(false, test.isSuccessful())
+        assertEquals(true, (test.failure is UnhandledError))
+    }
+
+    @Test
+    fun testOnlineRepositoryFetchFailureIOException() {
+        changeNetworkBehaviour(100)
+        mGitHubApi = MockGitHubApiFail(delegate)
+        createRepository(mGitHubApi)
+        val test = onlineRepository.fetchFreshCache(requirements).blockingGet()
+        assertEquals(false, test.isSuccessful())
+        assertEquals(true, test.failure is NetworkError)
+    }
+
+    @Test
+    fun testOnlineRepositoryEmptyCache() {
         changeNetworkBehaviour(0)
         val mGithubReposList = GitHubRepoList(generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        //Reset Repository since we are injecting a Mocked Retrofit.
-        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
-        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
-        //set up observers
-        mGitHubViewModelInjected.getErrorCode().observeForever(codeObserver)
-        mGitHubViewModelInjected.getRepoList()?.observeForever(listObserver)
-        runBlocking {
-            mGitHubViewModelInjected.initialSetup()
-            mGitHubViewModelInjected.getRepos()
-            assertEquals(9, gitHubRepoDAO.getRepoCount())
+        createRepository(mGitHubApi)
+
+        val setValues = OnlineRepository.Testing.initState(onlineRepository,requirements){
+            cacheEmpty {
+                cacheNotTooOld()
+            }
         }
-        assertEquals(2,mGitHubViewModelInjected.getErrorCode().value)
-        assertEquals(9,mGitHubViewModelInjected.getRepoList()?.value?.size)
+        val expectedValue = OnlineCacheState.Testing.cache<List<GitHubRepo>>(requirements,setValues.lastFetched!!)
+
+        onlineRepository.requirements = requirements
+        assertThat(gitHubViewModelInjected.getAllReposObservable().blockingFirst()).isEqualTo(expectedValue)
     }
 
     @Test
-    fun testGrabsReposAndFails() {
-        changeNetworkBehaviour(100)
-        mGitHubApi = MockGitHubApiFail(delegate)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        //Reset Repository since we are injecting a Mocked Retrofit.
-        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
-        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
-        //set up observers
-        mGitHubViewModelInjected.getErrorCode().observeForever(codeObserver)
-        mGitHubViewModelInjected.getRepoList()?.observeForever(listObserver)
-        runBlocking {
-            mGitHubViewModelInjected.initialSetup()
-            mGitHubViewModelInjected.getRepos()
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
-        }
-        assertEquals(1,mGitHubViewModelInjected.getErrorCode().value)
-        assertEquals(5,mGitHubViewModelInjected.getRepoList()?.value?.size)
-    }
-
-    @Test
-    fun testNewDayAndGrabReposFails(){
-        //reset getYesterday to produce a different day
-        whenever(mDay.getYesterday()).thenReturn("1998-03-15")
-        changeNetworkBehaviour(100)
-        mGitHubApi = MockGitHubApiFail(delegate)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        //Reset Repository since we are injecting a Mocked Retrofit.
-        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
-        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
-        //set up observers
-        mGitHubViewModelInjected.getErrorCode().observeForever(codeObserver)
-        mGitHubViewModelInjected.getRepoList()?.observeForever(listObserver)
-        runBlocking {
-            mGitHubViewModelInjected.initialSetup()
-            mGitHubViewModelInjected.getRepos()
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
-        }
-        assertEquals(1,mGitHubViewModelInjected.getErrorCode().value)
-        assertEquals(5,mGitHubViewModelInjected.getRepoList()?.value?.size)
-    }
-
-    @Test
-    fun testNewDayAndGrabReposSuccess(){
-        //reset getYesterday to produce a different day
-        whenever(mDay.getYesterday()).thenReturn("1998-03-15")
+    fun testOnlineRepositoryEmptyCacheTooOld(){
         changeNetworkBehaviour(0)
         val mGithubReposList = GitHubRepoList(generateRepoList())
-        mGitHubApi = MockGitHubApiSuccess(delegate,mGithubReposList)
-        val mRetrofitService = RetroFitService(mGitHubApi)
-        //Reset Repository since we are injecting a Mocked Retrofit.
-        mRepository = GitHubRepository(mDB, model, mRetrofitService,mDay)
-        val mGitHubViewModelInjected = GitHubViewModelInjected(mRepository)
-        //set up observers
-        mGitHubViewModelInjected.getErrorCode().observeForever(codeObserver)
-        mGitHubViewModelInjected.getRepoList()?.observeForever(listObserver)
-        runBlocking {
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
-            mGitHubViewModelInjected.initialSetup()
-            mGitHubViewModelInjected.getRepos()
-            assertEquals(5, gitHubRepoDAO.getRepoCount())
+        mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
+        createRepository(mGitHubApi)
+
+        val setValue = OnlineRepository.Testing.initState(onlineRepository,requirements){
+            cacheEmpty {
+                cacheTooOld()
+            }
         }
-        assertEquals(2,mGitHubViewModelInjected.getErrorCode().value)
-        assertEquals(5,mGitHubViewModelInjected.getRepoList()?.value?.size)
+        val expectedValue = OnlineCacheState.Testing.cache<List<GitHubRepo>>(requirements,setValue.lastFetched!!){
+            fetching()
+        }
+
+        onlineRepository.requirements = requirements
+
+        assertThat(gitHubViewModelInjected.getAllReposObservable().blockingFirst()).isEqualTo(expectedValue)
+    }
+
+    @Test
+    fun testOnlineRepositoryNonEmptyCacheTooOld(){
+        changeNetworkBehaviour(0)
+        val mGithubReposList = GitHubRepoList(generateRepoList())
+        mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
+        createRepository(mGitHubApi)
+
+        val setValues = OnlineRepository.Testing.initState(onlineRepository,requirements){
+            cache(GitHubRepoList(generateRepoList())){
+                cacheTooOld()
+            }
+        }
+
+        val expectedValue = OnlineCacheState.Testing.cache<List<GitHubRepo>>(requirements,setValues.lastFetched!!){
+            fetching()
+        }
+
+        onlineRepository.requirements = requirements
+        assertThat(gitHubViewModelInjected.getAllReposObservable().blockingFirst()).isEqualTo(expectedValue)
+    }
+
+    @Test
+    fun testOnlineRepositoryCacheTooOldGetsReplaced(){
+        changeNetworkBehaviour(0)
+        val mGithubReposList = GitHubRepoList(generateRepoList())
+        mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
+        createRepository(mGitHubApi)
+
+        val fakeData = GitHubRepoList(listOf(GitHubRepo("title", GitHubRepoOwner("Owner","url"),9,"desc",18),GitHubRepo("title2", GitHubRepoOwner("Owner2","url2"),12,"desc2",15)))
+
+        val setValues = OnlineRepository.Testing.initState(onlineRepository,requirements){
+            cache(fakeData){
+                cacheTooOld()
+            }
+        }
+
+        val expectedValue = OnlineCacheState.Testing.cache<List<GitHubRepo>>(requirements,setValues.lastFetched!!){
+            fetching()
+        }
+
+        assertThat(gitHubRepoDAO.getRepoCount().blockingGet()).isEqualTo(2)
+
+        onlineRepository.requirements = requirements
+
+        val repoCacheStateInitial = gitHubViewModelInjected.getAllReposObservable().blockingFirst()
+        Thread.sleep(150)
+        val repoCacheStateGetCache = gitHubViewModelInjected.getAllReposObservable().blockingFirst()
+
+        val expectedValue2 = OnlineCacheState.Testing.cache<List<GitHubRepo>>(requirements,repoCacheStateGetCache.lastSuccessfulFetch!!){
+            cache(generateRepoList().sortedByDescending { it.getStargazers_count() })
+        }
+
+        assertThat(repoCacheStateInitial).isEqualTo(expectedValue)
+        assertThat(repoCacheStateGetCache).isEqualTo(expectedValue2)
+
+        assertThat(gitHubRepoDAO.getRepoCount().blockingGet()).isEqualTo(5)
+    }
+
+}
+
+class TellerInitRule : ExternalResource() {
+
+    override fun before() {
+        super.before()
+        InstrumentationRegistry.getInstrumentation().targetContext.applicationContext.let { application ->
+            val sharedPrefs = application.getSharedPreferences("teller-testing", Context.MODE_PRIVATE)
+            Teller.initTesting(sharedPrefs)
+            Teller.shared.clear()
+        }
     }
 }

@@ -1,22 +1,30 @@
 package com.example.androidtraining
 
+import android.util.Log
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import java.io.IOException
 
 
 class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
-    class GetReposRequirement(val day: String): OnlineRepository.GetCacheRequirements{
-        override var tag: GetCacheRequirementsTag = "Trending Kotlin repos for: $day"
+
+    private val compositeDisposable = CompositeDisposable()
+
+    class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
+        override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"
     }
 
     override var maxAgeOfCache = Age(1, Age.Unit.DAYS)
 
     override fun fetchFreshCache(requirements: GetReposRequirement): Single<FetchResponse<GitHubRepoList>> {
-        return service.getRepos(requirements.day)
+        return service.getRepos(requirements.dayInformation.getYesterday())
             .map {response -> val fetchResponse: FetchResponse<GitHubRepoList> =
                 if (response.isError){
                     val errorResult = when(response.error()!!){
@@ -50,7 +58,6 @@ class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val ser
             db.gitHubRepoDAO().insert(repos)
         }
     }
-
 
 }
 

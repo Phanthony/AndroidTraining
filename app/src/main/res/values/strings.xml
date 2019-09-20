@@ -12,4 +12,6 @@
     <string name="genericNetworkError">A network failure occurred</string>
     <string name="fetchRepos">Fetching Repos</string>
     <string name="error">Error</string>
+    <string name="Home">Home</string>
+    <string name="Issues">Issues</string>
 </resources>

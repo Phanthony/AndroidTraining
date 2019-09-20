@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/mobile_navigation" app:startDestination="@id/repo_dest">
+
+    <fragment android:id="@+id/repo_dest" android:name="com.example.androidtraining.RepoFragment"
+              android:label="RepoFragment"/>
+    <fragment android:id="@+id/issues_dest" android:name="com.example.androidtraining.IssuesFragment"
+              android:label="IssuesFragment"/>
+</navigation>

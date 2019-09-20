@@ -14,7 +14,7 @@ import kotlin.collections.ArrayList
 class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
                           private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val repoName = itemView.RepoNameAuthor!!
         val repoDesc = itemView.RepoDescription!!
         val repoStars = itemView.RepoStars!!

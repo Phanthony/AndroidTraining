@@ -23,6 +23,7 @@ interface GitHubRepoDAO {
     @Query("SELECT COUNT(*) FROM Repo_Table")
     fun getRepoCount(): Single<Int>
 
-
+    @Query("SELECT * FROM Repo_Table ORDER BY repoStarCount DESC")
+    fun getAllReposTesting(): Single<List<GitHubRepo>>
 
 }
