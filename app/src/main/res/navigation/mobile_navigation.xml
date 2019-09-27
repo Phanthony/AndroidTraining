@@ -5,6 +5,8 @@
 
     <fragment android:id="@+id/repo_dest" android:name="com.example.androidtraining.RepoFragment"
               android:label="RepoFragment"/>
-    <fragment android:id="@+id/issues_dest" android:name="com.example.androidtraining.IssuesFragment"
+    <fragment android:id="@+id/issues_dest1" android:name="com.example.androidtraining.IssuesFragment"
               android:label="IssuesFragment"/>
+    <fragment android:id="@+id/issues_dest" android:name="com.example.androidtraining.GitHubLoginFragment"
+              android:label="GitHubLoginFragment"/>
 </navigation>

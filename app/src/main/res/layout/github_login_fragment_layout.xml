@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+>
+
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/userPassTextLeft"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.15"
+    />
+
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/userPassTextRight"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.85"
+    />
+
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/userPassTextTop"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.3"
+    />
+
+    <TextView
+            android:id="@+id/gitHubLoginDisplayText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/LoginDisplay"
+            android:gravity="center"
+            style="@style/LoginDisplayText"
+            app:layout_constraintTop_toBottomOf="@id/userPassTextTop"
+    />
+
+    <LinearLayout
+            android:id="@+id/userPassLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/gitHubLoginDisplayText"
+            app:layout_constraintLeft_toRightOf="@id/userPassTextLeft"
+            app:layout_constraintRight_toLeftOf="@id/userPassTextRight"
+    >
+
+        <EditText
+                android:inputType="text"
+                android:id="@+id/GitHubLoginUsernameText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hint="@string/Username"
+                android:layout_margin="5dp"
+                android:importantForAutofill="no"/>
+
+        <EditText
+                android:layout_marginHorizontal="5dp"
+                android:id="@+id/GitHubLoginPasswordText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:hint="@string/Password"
+                android:inputType="textPassword"
+                android:importantForAutofill="no"/>
+
+    </LinearLayout>
+
+    <Button
+            android:id="@+id/GitHubLoginButton"
+            android:layout_margin="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/LoginButton"
+            app:layout_constraintTop_toBottomOf="@id/userPassLayout"
+            app:layout_constraintLeft_toRightOf="@id/userPassTextLeft"
+            app:layout_constraintRight_toLeftOf="@id/userPassTextRight"
+    />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,4 +14,8 @@
     <string name="error">Error</string>
     <string name="Home">Home</string>
     <string name="Issues">Issues</string>
+    <string name="LoginButton">   Login   </string>
+    <string name="LoginDisplay">Log into GitHub</string>
+    <string name="Username">username</string>
+    <string name="Password">password</string>
 </resources>
