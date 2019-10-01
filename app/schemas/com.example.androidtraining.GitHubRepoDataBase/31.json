@@ -1,0 +1,64 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 31,
+    "identityHash": "24ef344351c9e7ddb508290e6f680334",
+    "entities": [
+      {
+        "tableName": "Repo_Table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`repoTitle` TEXT, `repoStarCount` INTEGER NOT NULL, `repoDescription` TEXT, `repoId` INTEGER NOT NULL, `repologin` TEXT, `repoavatar_url` TEXT, PRIMARY KEY(`repoId`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "repoTitle",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "stargazers_count",
+            "columnName": "repoStarCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "repoDescription",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "repoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "owner.login",
+            "columnName": "repologin",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "owner.avatar_url",
+            "columnName": "repoavatar_url",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "repoId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '24ef344351c9e7ddb508290e6f680334')"
+    ]
+  }
+}
