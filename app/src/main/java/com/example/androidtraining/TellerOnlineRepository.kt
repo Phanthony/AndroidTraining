@@ -16,8 +16,6 @@ import java.io.IOException
 
 class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service, private val responseProcessor: ResponseProcessor): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
-    private val compositeDisposable = CompositeDisposable()
-
     class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"
     }
@@ -37,7 +35,7 @@ class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val ser
                 val fetchResponse: FetchResponse<GitHubRepoList> = if (processedResponse.isFailure()) {
                     FetchResponse.fail(processedResponse.error!!)
                 } else {
-                    FetchResponse.success(GitHubRepoList("", listOf()))
+                    FetchResponse.success(processedResponse.body!!)
                 }
 
                 fetchResponse

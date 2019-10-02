@@ -8,16 +8,23 @@ import retrofit2.Response
 import retrofit2.adapter.rxjava2.Result
 import java.io.IOException
 
-class ResponseProcessor(private val context: Context,
-                        private val logger: ActivityLogger,
-                        private val jsonAdapter: JsonAdapter) {
+class ResponseProcessor(
+    private val context: Context,
+    private val logger: ActivityLogger,
+    private val jsonAdapter: JsonAdapter
+) {
 
-    fun <RESPONSE: MessageResponse> process(result: Result<RESPONSE>, extraErrorHandling: ((code: Int, response: Response<RESPONSE>, errorBody: String, jsonAdapter: JsonAdapter) -> Throwable?)? = null): ProcessedResult<RESPONSE> {
+    fun <RESPONSE : MessageResponse> process(
+        result: Result<RESPONSE>,
+        extraErrorHandling: ((code: Int, response: Response<RESPONSE>, errorBody: String, jsonAdapter: JsonAdapter) -> Throwable?)? = null
+    ): ProcessedResult<RESPONSE> {
         when (result.error()) {
             is NoInternetConnectionException,
             is UnauthorizedException -> result.error()
             is IOException -> NetworkConnectionIssueException(context.getString(R.string.error_network_connection_issue))
-            null -> { null }
+            null -> {
+                null
+            }
             else -> {
                 // According to Retrofit's result.error() Javadoc, if the error is not an instance of IOException, it's a programming error and should be looked at. Throw it so we can see it and fix it.
                 logger.errorOccurred(result.error()!!)
@@ -48,13 +55,15 @@ class ResponseProcessor(private val context: Context,
             ProcessedResult(error, error.message!!, null)
         } else {
             // Finally. The successful response!
-            return ProcessedResult(null, response.body()!!.message, response.body())
+            return ProcessedResult(null, "Here are the top trending Kotlin repositories.", response.body())
         }
     }
 
-    data class ProcessedResult<T>(val error: Throwable?,
-                                  val message: String,
-                                  val body: T?) {
+    data class ProcessedResult<T>(
+        val error: Throwable?,
+        val message: String,
+        val body: T?
+    ) {
 
         fun isFailure(): Boolean = error != null
 
@@ -64,8 +73,12 @@ class ResponseProcessor(private val context: Context,
 
     // During development you should be handling client side all of the ways that a HTTP API call could fail. However, you may forget some. So to handle that, we need to alert ourselves to fix this issue and to return back to our users a human readable message saying that an error we cannot handle it and we are going to fix it. So this code here logs the error and then returns back a Throwable that we can show the message to the user.
     fun <RESPONSE> unhandledHttpResult(result: Result<RESPONSE>): UnhandledHttpResultException {
-        logger.errorOccurred(UnhandledHttpResultException("Fatal HTTP network call. ${result.response()?.toString()
-            ?: "(no HTTP response found)."}"))
+        logger.errorOccurred(
+            UnhandledHttpResultException(
+                "Fatal HTTP network call. ${result.response()?.toString()
+                    ?: "(no HTTP response found)."}"
+            )
+        )
         return UnhandledHttpResultException(context.getString(R.string.unhandled_http_result_message))
     }
 
