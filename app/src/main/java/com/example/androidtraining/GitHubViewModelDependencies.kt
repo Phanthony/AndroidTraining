@@ -10,6 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import androidx.lifecycle.LiveDataReactiveStreams.*
+import com.example.androidtraining.service.logger.AppActivityLogger
 import com.levibostian.teller.cachestate.OnlineCacheState
 import com.levibostian.teller.repository.OnlineRepository
 import io.reactivex.BackpressureStrategy
@@ -41,7 +42,7 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         )
         val dayInformation = DayInformation()
         compositeDisposable = CompositeDisposable()
-        tellerRepository = TellerOnlineRepository(dataBase, retrofitService)
+        tellerRepository = TellerOnlineRepository(dataBase, retrofitService, ResponseProcessor(application, AppActivityLogger(), MoshiJsonAdapter()))
         gitHubViewModelInjected = GitHubViewModelInjected(tellerRepository, dayInformation)
         gitHubViewModelInjected.initialSetup()
     }

@@ -7,6 +7,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.example.androidtraining.service.logger.AppActivityLogger
 import com.google.common.truth.Truth.assertThat
 import com.levibostian.teller.Teller
 import com.levibostian.teller.cachestate.OnlineCacheState
@@ -128,7 +129,7 @@ class GitHubViewModelIntegrationTests {
     }
 
     private fun createRepository(service: GitHubApi) {
-        onlineRepository = TellerOnlineRepository(mDB, RetroFitService(service))
+        onlineRepository = TellerOnlineRepository(mDB, RetroFitService(service), ResponseProcessor(ApplicationProvider.getApplicationContext<Context>(), AppActivityLogger(), MoshiJsonAdapter()))
         gitHubViewModelInjected = GitHubViewModelInjected(onlineRepository, mday)
     }
 
@@ -186,7 +187,7 @@ class GitHubViewModelIntegrationTests {
     @Test
     fun testOnlineRepositoryFetchSuccess() {
         changeNetworkBehaviour(0)
-        val mGithubReposList = GitHubRepoList(generateRepoList())
+        val mGithubReposList = GitHubRepoList("", generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         createRepository(mGitHubApi)
         val test = onlineRepository.fetchFreshCache(requirements).blockingGet()
@@ -228,7 +229,7 @@ class GitHubViewModelIntegrationTests {
     @Test
     fun testOnlineRepositoryEmptyCache() {
         changeNetworkBehaviour(0)
-        val mGithubReposList = GitHubRepoList(generateRepoList())
+        val mGithubReposList = GitHubRepoList("", generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         createRepository(mGitHubApi)
 
@@ -246,7 +247,7 @@ class GitHubViewModelIntegrationTests {
     @Test
     fun testOnlineRepositoryEmptyCacheTooOld(){
         changeNetworkBehaviour(0)
-        val mGithubReposList = GitHubRepoList(generateRepoList())
+        val mGithubReposList = GitHubRepoList("", generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         createRepository(mGitHubApi)
 
@@ -267,12 +268,12 @@ class GitHubViewModelIntegrationTests {
     @Test
     fun testOnlineRepositoryNonEmptyCacheTooOld(){
         changeNetworkBehaviour(0)
-        val mGithubReposList = GitHubRepoList(generateRepoList())
+        val mGithubReposList = GitHubRepoList("", generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         createRepository(mGitHubApi)
 
         val setValues = OnlineRepository.Testing.initState(onlineRepository,requirements){
-            cache(GitHubRepoList(generateRepoList())){
+            cache(GitHubRepoList("", generateRepoList())){
                 cacheTooOld()
             }
         }
@@ -288,11 +289,11 @@ class GitHubViewModelIntegrationTests {
     @Test
     fun testOnlineRepositoryCacheTooOldGetsReplaced(){
         changeNetworkBehaviour(0)
-        val mGithubReposList = GitHubRepoList(generateRepoList())
+        val mGithubReposList = GitHubRepoList("", generateRepoList())
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         createRepository(mGitHubApi)
 
-        val fakeData = GitHubRepoList(listOf(GitHubRepo("title", GitHubRepoOwner("Owner","url"),9,"desc",18),GitHubRepo("title2", GitHubRepoOwner("Owner2","url2"),12,"desc2",15)))
+        val fakeData = GitHubRepoList("", listOf(GitHubRepo("title", GitHubRepoOwner("Owner","url"),9,"desc",18),GitHubRepo("title2", GitHubRepoOwner("Owner2","url2"),12,"desc2",15)))
 
         val setValues = OnlineRepository.Testing.initState(onlineRepository,requirements){
             cache(fakeData){
