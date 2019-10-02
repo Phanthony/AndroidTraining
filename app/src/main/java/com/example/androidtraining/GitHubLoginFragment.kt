@@ -22,7 +22,7 @@ class GitHubLoginFragment:Fragment() {
         super.onCreate(savedInstanceState)
 
         retrofit = Retrofit.Builder()
-            .baseUrl("https://devclassserver.foundersclub.software/")
+            .baseUrl("https://devclassserver.foundersclub.software")
             .addConverterFactory(MoshiConverterFactory.create())
             .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
             .build()
@@ -34,7 +34,6 @@ class GitHubLoginFragment:Fragment() {
         val loginButton = view.findViewById<Button>(R.id.GitHubLoginButton)
 
         loginButton.setOnClickListener {
-
             val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)
             val checkUsername = checkEditText(username)
             if(checkUsername == null){
@@ -50,24 +49,24 @@ class GitHubLoginFragment:Fragment() {
                 return@setOnClickListener
             }
 
-            retrofit.loginGithub(checkPassword,checkUsername)
+            retrofit.loginGithub(authmobileRequestBody(listOf("repo"),"4cc5aa575096c8bcb036",checkPassword,checkUsername))
+                    //testuser7891
+                    //goldcatchadmit72
                 .subscribeOn(Schedulers.io())
-                .subscribeBy { result ->
-                    if(!result.isError){
-                        Log.i("test",result.response()!!.body()!!.response.access_token)
+                .subscribeBy{
+                    if(!it.isError){
+                        Log.i("succ",it.response().toString())
                     }
                     else{
-                        Log.i("test",result.error()!!.message)
+                        Log.i("fail",it.error().toString())
                     }
                 }
 
         }
-
-
         return view
     }
 
-    fun checkEditText(editText: EditText): String? {
+    private fun checkEditText(editText: EditText): String? {
         val input = editText.text.trim()
         return if(input.isEmpty()){
             null

@@ -71,10 +71,11 @@ class RepoFragment : Fragment() {
                     when (cache) {
                         null -> {
                             //empty cache nothing to show
-
+                            lastTime = lastSuccessfulFetch.time
                         }
                         else -> {
                             // update shown cache
+                            lastTime = lastSuccessfulFetch.time
                             adapter.clear()
                             adapter.addAll(cache)
                         }
@@ -87,8 +88,6 @@ class RepoFragment : Fragment() {
                 }
             }
         })
-
-        gitHubViewModel.userRefresh()
 
         //Set up runnable for the refresh time.
         val lastRefresh = view.findViewById<TextView>(R.id.LastRefreshTime)
