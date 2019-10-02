@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.androidtraining.service.vo.response.MessageResponse
 
 @Entity(tableName = "Repo_Table")
 data class GitHubRepo(@ColumnInfo(name = "repoTitle") private var name: String,
@@ -19,7 +20,9 @@ data class GitHubRepo(@ColumnInfo(name = "repoTitle") private var name: String,
 }
 
 
-data class GitHubRepoList(var items: List<GitHubRepo>)
+data class GitHubRepoList(
+    override val message: String = "Here are the top trending Kotlin repositories.",
+    var items: List<GitHubRepo>): MessageResponse
 
 
 data class GitHubRepoOwner(var login: String, var avatar_url: String)

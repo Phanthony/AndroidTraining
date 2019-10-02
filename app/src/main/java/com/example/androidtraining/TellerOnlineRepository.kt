@@ -1,6 +1,7 @@
 package com.example.androidtraining
 
 import android.util.Log
+import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age
@@ -13,7 +14,7 @@ import io.reactivex.schedulers.Schedulers
 import java.io.IOException
 
 
-class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
+class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service, private val responseProcessor: ResponseProcessor): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -25,22 +26,20 @@ class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val ser
 
     override fun fetchFreshCache(requirements: GetReposRequirement): Single<FetchResponse<GitHubRepoList>> {
         return service.getRepos(requirements.dayInformation.getYesterday())
-            .map {response -> val fetchResponse: FetchResponse<GitHubRepoList> =
-                if (response.isError){
-                    val errorResult = when(response.error()!!){
-                        is IOException -> {FetchResponse.fail<GitHubRepoList>(NetworkError())}
-                        else -> {FetchResponse.fail(UnhandledError())}
+            .map { result ->
+                val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
+                    when (code) {
+                        400 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
+                        else -> null
                     }
-                    errorResult
                 }
-                else{
-                    val result = when(response.response()!!.code()){
-                        200 -> {FetchResponse.success(response.response()!!.body()!!)}
-                        in 400..422 -> {FetchResponse.fail(JsonError())}
-                        else -> {FetchResponse.fail(UnhandledError())}
-                    }
-                    result
+
+                val fetchResponse: FetchResponse<GitHubRepoList> = if (processedResponse.isFailure()) {
+                    FetchResponse.fail(processedResponse.error!!)
+                } else {
+                    FetchResponse.success(GitHubRepoList("", listOf()))
                 }
+
                 fetchResponse
             }
     }
