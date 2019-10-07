@@ -3,7 +3,6 @@ package com.example.androidtraining
 import android.content.Context
 import com.example.androidtraining.service.error.*
 import com.example.androidtraining.service.logger.ActivityLogger
-import com.example.androidtraining.service.vo.response.MessageResponse
 import retrofit2.Response
 import retrofit2.adapter.rxjava2.Result
 import java.io.IOException
@@ -14,13 +13,12 @@ class ResponseProcessor(
     private val jsonAdapter: JsonAdapter
 ) {
 
-    fun <RESPONSE : MessageResponse> process(
+    fun <RESPONSE> process(
         result: Result<RESPONSE>,
         extraErrorHandling: ((code: Int, response: Response<RESPONSE>, errorBody: String, jsonAdapter: JsonAdapter) -> Throwable?)? = null
     ): ProcessedResult<RESPONSE> {
         when (result.error()) {
-            is NoInternetConnectionException,
-            is UnauthorizedException -> result.error()
+            is NoInternetConnectionException, is UnauthorizedException -> result.error()
             is IOException -> NetworkConnectionIssueException(context.getString(R.string.error_network_connection_issue))
             null -> {
                 null
@@ -55,13 +53,13 @@ class ResponseProcessor(
             ProcessedResult(error, error.message!!, null)
         } else {
             // Finally. The successful response!
-            return ProcessedResult(null, "Here are the top trending Kotlin repositories.", response.body())
+            return ProcessedResult(null,null,response.body())
         }
     }
 
     data class ProcessedResult<T>(
         val error: Throwable?,
-        val message: String,
+        val message: String?,
         val body: T?
     ) {
 

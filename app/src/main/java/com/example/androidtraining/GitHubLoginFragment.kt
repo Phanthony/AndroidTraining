@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProviders
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import retrofit2.Retrofit
@@ -33,6 +34,10 @@ class GitHubLoginFragment:Fragment() {
         val view = inflater.inflate(R.layout.github_login_fragment_layout,container,false)
         val loginButton = view.findViewById<Button>(R.id.GitHubLoginButton)
 
+        val gitHubViewModel = activity!!.run {
+            ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
+        }
+
         loginButton.setOnClickListener {
             val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)
             val checkUsername = checkEditText(username)
@@ -49,16 +54,16 @@ class GitHubLoginFragment:Fragment() {
                 return@setOnClickListener
             }
 
-            retrofit.loginGithub(authmobileRequestBody(listOf("repo"),"4cc5aa575096c8bcb036",checkPassword,checkUsername))
-                    //testuser7891
-                    //goldcatchadmit72
+            //testuser7891
+            //goldcatchadmit72
+            gitHubViewModel.logIntoGitHub(checkPassword,checkUsername)
                 .subscribeOn(Schedulers.io())
                 .subscribeBy{
-                    if(!it.isError){
-                        Log.i("succ",it.response().toString())
+                    if(it.isFailure()){
+                        Log.i("fail",it.failure!!.message)
                     }
                     else{
-                        Log.i("fail",it.error().toString())
+                        Log.i("succ",it.response.toString())
                     }
                 }
 

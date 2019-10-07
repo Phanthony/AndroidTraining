@@ -1,20 +1,14 @@
 package com.example.androidtraining
 
-import android.util.Log
 import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.rxkotlin.subscribeBy
-import io.reactivex.schedulers.Schedulers
-import java.io.IOException
 
 
-class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service, private val responseProcessor: ResponseProcessor): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
+class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: RepoService, private val responseProcessor: ResponseProcessor): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"
