@@ -4,7 +4,6 @@ import android.content.Context
 import com.example.androidtraining.service.error.*
 import com.example.androidtraining.service.logger.ActivityLogger
 import retrofit2.Response
-import retrofit2.adapter.rxjava2.Result
 import java.io.IOException
 
 class ResponseProcessor(

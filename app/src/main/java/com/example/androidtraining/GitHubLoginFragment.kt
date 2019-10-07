@@ -17,19 +17,6 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class GitHubLoginFragment:Fragment() {
 
-    lateinit var retrofit: GitHubLoginApi
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        retrofit = Retrofit.Builder()
-            .baseUrl("https://devclassserver.foundersclub.software")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-            .build()
-            .create(GitHubLoginApi::class.java)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.github_login_fragment_layout,container,false)
         val loginButton = view.findViewById<Button>(R.id.GitHubLoginButton)

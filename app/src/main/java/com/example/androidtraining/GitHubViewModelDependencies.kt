@@ -18,7 +18,6 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.addTo
-import retrofit2.adapter.rxjava2.Result
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -30,35 +29,40 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
     private val compositeDisposable: CompositeDisposable
     private val gitHubViewModelInjected: GitHubViewModelInjected
     private val dataBase: GitHubRepoDataBase = GitHubRepoDataBase.getInstance(application)!!
-    private val tellerRepository : TellerOnlineRepository
+    private val tellerRepository: TellerOnlineRepository
     private val responseProcessor = ResponseProcessor(application, AppActivityLogger(), MoshiJsonAdapter())
-    private var retrofitLoginGithubService : RetroFitLoginService
+    private var service: Service
 
     init {
-        val retrofitRepoService = RetroFitRepoService(
+        val repoService =
             Retrofit.Builder()
                 .baseUrl("https://api.github.com/")
                 .addConverterFactory(MoshiConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .build()
                 .create(GitHubApi::class.java)
-        )
+        val loginService =
+                Retrofit.Builder()
+                    .baseUrl("https://devclassserver.foundersclub.software")
+                    .addConverterFactory(MoshiConverterFactory.create())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                    .build()
+                    .create(DevApi::class.java)
+
+        service = RetroFitService(repoService,loginService)
         val dayInformation = DayInformation()
         compositeDisposable = CompositeDisposable()
-        tellerRepository = TellerOnlineRepository(dataBase, retrofitRepoService, responseProcessor)
+        tellerRepository = TellerOnlineRepository(dataBase, service, responseProcessor)
         gitHubViewModelInjected = GitHubViewModelInjected(tellerRepository, dayInformation)
         gitHubViewModelInjected.initialSetup()
 
-        retrofitLoginGithubService = RetroFitLoginService(Retrofit.Builder()
-            .baseUrl("https://devclassserver.foundersclub.software")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-            .build()
-            .create(GitHubLoginApi::class.java))
     }
 
-    fun logIntoGitHub(username: String, password: String) : Single<OnlineRepository.FetchResponse<GitHubLoginResultSuccess>> {
-        return retrofitLoginGithubService.loginToGithub(password,username)
+    fun logIntoGitHub(
+        username: String,
+        password: String
+    ): Single<OnlineRepository.FetchResponse<GitHubLoginResultSuccess>> {
+        return service.loginToGithub(password, username)
             .map { result ->
                 val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
                     when (code) {
@@ -66,11 +70,12 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
                         else -> null
                     }
                 }
-                val fetchResponse: OnlineRepository.FetchResponse<GitHubLoginResultSuccess> = if (processedResponse.isFailure()) {
-                    OnlineRepository.FetchResponse.fail(processedResponse.error!!)
-                } else {
-                    OnlineRepository.FetchResponse.success(processedResponse.body!!)
-                }
+                val fetchResponse: OnlineRepository.FetchResponse<GitHubLoginResultSuccess> =
+                    if (processedResponse.isFailure()) {
+                        OnlineRepository.FetchResponse.fail(processedResponse.error!!)
+                    } else {
+                        OnlineRepository.FetchResponse.success(processedResponse.body!!)
+                    }
 
                 fetchResponse
             }
@@ -85,7 +90,7 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
     }
 
-    fun userRefresh(){
+    fun userRefresh() {
         gitHubViewModelInjected.refreshCache()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe()
@@ -110,28 +115,27 @@ class GitHubViewModelInjected(private val repository: TellerOnlineRepository, pr
     }
 }
 
-class RetroFitRepoService(private var service: GitHubApi) : RepoService {
+class RetroFitService(private var GHService: GitHubApi, private var devService: DevApi) : Service {
     override fun getRepos(day: String): Single<Result<GitHubRepoList>> {
-        return service.getRepo("created:%3E$day+language:kotlin+stars:%3E0")
+        return GHService.getRepo("created:%3E$day+language:kotlin+stars:%3E0")
+        //convert from Retrofit result to kotlin result
+        //use map
     }
-}
 
-class RetroFitLoginService(private var service: GitHubLoginApi) : LoginService{
     override fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResultSuccess>> {
-        return service.loginGithub(authmobileRequestBody(listOf("repo"),"4cc5aa575096c8bcb036",password,username))
+        return devService.loginGithub(AuthMobileRequestBody(listOf("repo"), "4cc5aa575096c8bcb036", password, username))
+        //convert from Retrofit result to kotlin result
+        //use map
     }
 }
 
-
-interface RepoService {
+interface Service {
     fun getRepos(day: String): Single<Result<GitHubRepoList>>
+
+    fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResultSuccess>>
 }
 
-interface LoginService {
-    fun loginToGithub(password: String,username: String): Single<Result<GitHubLoginResultSuccess>>
-}
-
-class DayInformation: Day{
+class DayInformation : Day {
     override fun getYesterday(): String {
         return (DateTimeFormatter.ofPattern("yyyy-MM-dd")
             .withLocale(Locale.US)
@@ -140,6 +144,6 @@ class DayInformation: Day{
     }
 }
 
-interface Day{
+interface Day {
     fun getYesterday(): String
 }

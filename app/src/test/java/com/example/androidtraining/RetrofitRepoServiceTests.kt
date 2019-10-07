@@ -1,5 +1,8 @@
 package com.example.androidtraining
 
+import com.google.common.truth.Truth.assertThat
+import com.nhaarman.mockitokotlin2.argumentCaptor
+import com.nhaarman.mockitokotlin2.verify
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import okhttp3.MediaType
@@ -8,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import retrofit2.Call
 import retrofit2.Response
@@ -23,7 +27,11 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 @RunWith(MockitoJUnitRunner::class)
-class RetrofitServiceTests {
+class RetrofitRepoServiceTests {
+
+    //Use Mockito
+
+    @Mock lateinit var mservice: GitHubApi
 
     class MockGitHubApiFail(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
         private val mockFail = IOException()
@@ -61,7 +69,7 @@ class RetrofitServiceTests {
     private lateinit var mockRetrofit: MockRetrofit
     private lateinit var delegate: BehaviorDelegate<GitHubApi>
     private lateinit var testList: List<GitHubRepo>
-    private lateinit var mRetrofitRepoService: RetroFitRepoService
+    private lateinit var mRetrofitRepoService: RetroFitService
 
 
     @Before
@@ -85,7 +93,7 @@ class RetrofitServiceTests {
     fun `getRepos execute is Successful and Response is successful`() {
         changeNetworkBehaviour(0)
         val testGithubRepoList = GitHubRepoList(testList)
-        mRetrofitRepoService = RetroFitRepoService(MockGitHubApiSuccess(delegate,testGithubRepoList))
+        mRetrofitRepoService = RetroFitService(MockGitHubApiSuccess(delegate,testGithubRepoList))
         val completed = mRetrofitRepoService.getRepos("1993-03-10").blockingGet()
         assertEquals(completed.response()!!.body(),testGithubRepoList)
     }
@@ -93,7 +101,7 @@ class RetrofitServiceTests {
     @Test
     fun `getRepos execute is Successful and Response is unsuccessful`() {
         changeNetworkBehaviour(0)
-        val mRetrofitService = RetroFitRepoService(MockGitHubApiResponseFail(delegate))
+        val mRetrofitService = RetroFitService(MockGitHubApiResponseFail(delegate))
         val temp = mRetrofitService.getRepos("1998-03-10").blockingGet()
         assertEquals(temp.isError,false)
         assertEquals(temp.response()!!.code(),400)
@@ -102,7 +110,7 @@ class RetrofitServiceTests {
     @Test
     fun `getRepos execute is unsuccessful`() {
         changeNetworkBehaviour(100)
-        val mRetrofitService = RetroFitRepoService(MockGitHubApiFail(delegate))
+        val mRetrofitService = RetroFitService(MockGitHubApiFail(delegate))
         val temp = mRetrofitService.getRepos("1998-03-10").blockingGet()
         assertEquals(temp.isError,true)
     }
@@ -111,6 +119,17 @@ class RetrofitServiceTests {
         networkBehavior.setDelay(0, TimeUnit.SECONDS)
         networkBehavior.setVariancePercent(0)
         networkBehavior.setFailurePercent(failPercent)
+    }
+
+
+    @Test
+    fun `getRepos correct String`(){
+        val testString = "1998-03-10"
+        val testService = RetroFitService(mservice)
+        val getRepoArgumentCaptor = argumentCaptor<String>()
+        testService.getRepos(testString)
+        verify(mservice).getRepo(getRepoArgumentCaptor.capture())
+        assertThat(getRepoArgumentCaptor.firstValue).isEqualTo("created:%3E1998-03-10+language:kotlin+stars:%3E0")
     }
 
 }
