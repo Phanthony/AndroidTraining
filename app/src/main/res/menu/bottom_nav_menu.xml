@@ -5,7 +5,7 @@
             android:title="@string/Home"
     />
     <item
-            android:id="@+id/issues_dest"
+            android:id="@+id/login_dest"
             android:title="@string/Issues"
     />
 </menu>

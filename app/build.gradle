@@ -16,6 +16,10 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        kotlinOptions {
+            freeCompilerArgs = ["-Xallow-result-return-type"]
+        }
+
         kapt {
             arguments {
                 arg("room.schemaLocation", "$projectDir/schemas".toString())

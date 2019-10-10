@@ -31,7 +31,7 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
     private val dataBase: GitHubRepoDataBase = GitHubRepoDataBase.getInstance(application)!!
     private val tellerRepository: TellerOnlineRepository
     private val responseProcessor = ResponseProcessor(application, AppActivityLogger(), MoshiJsonAdapter())
-    private var service: Service
+    var service: Service
 
     init {
         val repoService =
@@ -49,36 +49,13 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
                     .build()
                     .create(DevApi::class.java)
 
-        service = RetroFitService(repoService,loginService)
+        service = RetroFitService(repoService,loginService, responseProcessor)
         val dayInformation = DayInformation()
         compositeDisposable = CompositeDisposable()
-        tellerRepository = TellerOnlineRepository(dataBase, service, responseProcessor)
+        tellerRepository = TellerOnlineRepository(dataBase, service)
         gitHubViewModelInjected = GitHubViewModelInjected(tellerRepository, dayInformation)
         gitHubViewModelInjected.initialSetup()
 
-    }
-
-    fun logIntoGitHub(
-        username: String,
-        password: String
-    ): Single<OnlineRepository.FetchResponse<GitHubLoginResultSuccess>> {
-        return service.loginToGithub(password, username)
-            .map { result ->
-                val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
-                    when (code) {
-                        400 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
-                        else -> null
-                    }
-                }
-                val fetchResponse: OnlineRepository.FetchResponse<GitHubLoginResultSuccess> =
-                    if (processedResponse.isFailure()) {
-                        OnlineRepository.FetchResponse.fail(processedResponse.error!!)
-                    } else {
-                        OnlineRepository.FetchResponse.success(processedResponse.body!!)
-                    }
-
-                fetchResponse
-            }
     }
 
     fun getComposite(): CompositeDisposable {
@@ -115,17 +92,42 @@ class GitHubViewModelInjected(private val repository: TellerOnlineRepository, pr
     }
 }
 
-class RetroFitService(private var GHService: GitHubApi, private var devService: DevApi) : Service {
+class RetroFitService(private val ghService: GitHubApi, private val devService: DevApi, private val responseProcessor: ResponseProcessor) : Service {
     override fun getRepos(day: String): Single<Result<GitHubRepoList>> {
-        return GHService.getRepo("created:%3E$day+language:kotlin+stars:%3E0")
-        //convert from Retrofit result to kotlin result
-        //use map
+        return ghService.getRepo("created:%3E$day+language:kotlin+stars:%3E0").map{ result ->
+            val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
+                when (code) {
+                    400 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
+                    else -> null
+                }
+            }
+            val kotlinResult = if (processedResponse.isFailure()){
+                Result.failure(processedResponse.error!!)
+            } else {
+                Result.success(processedResponse.body!!)
+            }
+
+            kotlinResult
+        }
     }
 
     override fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResultSuccess>> {
-        return devService.loginGithub(AuthMobileRequestBody(listOf("repo"), "4cc5aa575096c8bcb036", password, username))
-        //convert from Retrofit result to kotlin result
-        //use map
+        return devService.loginGithub(AuthMobileRequestBody(listOf("repo"), "4cc5aa575096c8bcb036", password, username)).map {
+                result ->
+            val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
+                when (code) {
+                    401 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
+                    else -> null
+                }
+            }
+            val kotlinResult = if (processedResponse.isFailure()){
+                Result.failure(processedResponse.error!!)
+            } else {
+                Result.success(processedResponse.body!!)
+            }
+
+            kotlinResult
+        }
     }
 }
 

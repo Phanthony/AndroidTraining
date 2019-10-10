@@ -127,7 +127,7 @@ class GitHubViewModelIntegrationTests {
     }
 
     private fun createRepository(service: GitHubApi) {
-        onlineRepository = TellerOnlineRepository(mDB, RetroFitService(service), ResponseProcessor(ApplicationProvider.getApplicationContext<Context>(), AppActivityLogger(), MoshiJsonAdapter()))
+        //onlineRepository = TellerOnlineRepository(mDB, RetroFitService(service), ResponseProcessor(ApplicationProvider.getApplicationContext<Context>(), AppActivityLogger(), MoshiJsonAdapter()))
         gitHubViewModelInjected = GitHubViewModelInjected(onlineRepository, mday)
     }
 

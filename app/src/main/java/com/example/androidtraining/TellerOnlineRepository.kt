@@ -8,7 +8,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 
-class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service, private val responseProcessor: ResponseProcessor): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
+class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"
@@ -19,17 +19,10 @@ class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val ser
     override fun fetchFreshCache(requirements: GetReposRequirement): Single<FetchResponse<GitHubRepoList>> {
         return service.getRepos(requirements.dayInformation.getYesterday())
             .map { result ->
-                val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
-                    when (code) {
-                        400 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
-                        else -> null
-                    }
-                }
-
-                val fetchResponse: FetchResponse<GitHubRepoList> = if (processedResponse.isFailure()) {
-                    FetchResponse.fail(processedResponse.error!!)
+                val fetchResponse: FetchResponse<GitHubRepoList> = if (result.isFailure) {
+                    FetchResponse.fail(result.exceptionOrNull()!!)
                 } else {
-                    FetchResponse.success(processedResponse.body!!)
+                    FetchResponse.success(result.getOrNull()!!)
                 }
 
                 fetchResponse
@@ -51,9 +44,3 @@ class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val ser
     }
 
 }
-
-class JsonError: Throwable("Can not compute JSON request")
-
-class UnhandledError: Throwable()
-
-class NetworkError: Throwable("There is a problem with your network connection")
