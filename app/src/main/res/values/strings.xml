@@ -12,7 +12,7 @@
     <string name="genericNetworkError">A network failure occurred</string>
     <string name="fetchRepos">Fetching Repos</string>
     <string name="error">Error</string>
-    <string name="Home">Home</string>
+    <string name="TrendingRepos">Trending Repos</string>
     <string name="Issues">Issues</string>
     <string name="LoginButton">   Login   </string>
     <string name="LoginDisplay">Log into GitHub</string>

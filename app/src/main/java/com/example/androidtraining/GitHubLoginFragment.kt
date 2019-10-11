@@ -24,18 +24,6 @@ class GitHubLoginFragment:Fragment() {
 
     lateinit var sharedPreferences: SharedPreferences
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        sharedPreferences = context.getSharedPreferences("github", Context.MODE_PRIVATE)
-        if(sharedPreferences.getString("access_token",null) != null){
-            val nav = activity!!.findNavController(R.id.nav_host_fragment)
-            nav.navigate(R.id.issues_dest)
-            onDestroy()
-        }
-
-    }
-
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.github_login_fragment_layout,container,false)
         val loginButton = view.findViewById<Button>(R.id.GitHubLoginButton)
@@ -43,6 +31,8 @@ class GitHubLoginFragment:Fragment() {
         val gitHubViewModel = activity!!.run {
             ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
         }
+
+        sharedPreferences = activity!!.getSharedPreferences("github", Context.MODE_PRIVATE)
 
         loginButton.setOnClickListener {
             val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)

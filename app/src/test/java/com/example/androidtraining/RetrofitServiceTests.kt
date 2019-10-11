@@ -20,7 +20,7 @@ class RetrofitServiceTests {
     @Mock
     lateinit var mRepoService: GitHubApi
     @Mock
-    lateinit var mLoginServce: DevApi
+    lateinit var mLoginSerivce: DevApi
     @Mock
     lateinit var mResponseProcessor: ResponseProcessor
 
@@ -28,7 +28,7 @@ class RetrofitServiceTests {
 
     @Before
     fun setup(){
-        testService = RetroFitService(mRepoService, mLoginServce,mResponseProcessor)
+        testService = RetroFitService(mRepoService, mLoginSerivce,mResponseProcessor)
     }
 
     @Test
@@ -49,7 +49,7 @@ class RetrofitServiceTests {
         val testPass = "goldcatchadmit72"
         val getLoginArgumentCaptor = argumentCaptor<AuthMobileRequestBody>()
         testService.loginToGithub(testPass, testUser)
-        verify(mLoginServce).loginGithub(getLoginArgumentCaptor.capture())
+        verify(mLoginSerivce).loginGithub(getLoginArgumentCaptor.capture())
         assertThat(getLoginArgumentCaptor.firstValue.username).isEqualTo(testUser)
         assertThat(getLoginArgumentCaptor.firstValue.password).isEqualTo(testPass)
     }
