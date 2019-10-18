@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.service
 
 import io.reactivex.Single
 import retrofit2.adapter.rxjava2.Result
@@ -8,7 +8,7 @@ import retrofit2.http.POST
 interface DevApi {
 
     @POST("/auth/mobile")
-    fun loginGithub(@Body body: AuthMobileRequestBody): Single<Result<GitHubLoginResultSuccess>>
+    fun loginGithub(@Body body: AuthMobileRequestBody): Single<Result<GitHubLoginResult>>
 }
 
 data class AuthMobileRequestBody(

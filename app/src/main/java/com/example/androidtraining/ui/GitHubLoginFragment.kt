@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.ui
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -12,13 +12,11 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
+import com.example.androidtraining.GitHubViewModelDependencies
+import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.*
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
 
 class GitHubLoginFragment:Fragment() {
 
@@ -33,16 +31,16 @@ class GitHubLoginFragment:Fragment() {
         }
 
         sharedPreferences = activity!!.getSharedPreferences("github", Context.MODE_PRIVATE)
+        val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)
+        val password = view.findViewById<EditText>(R.id.GitHubLoginPasswordText)
 
         loginButton.setOnClickListener {
-            val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)
             val checkUsername = checkEditText(username)
             if(checkUsername == null){
                 username.requestFocus()
                 username.error = "Empty Username"
                 return@setOnClickListener
             }
-            val password = view.findViewById<EditText>(R.id.GitHubLoginPasswordText)
             val checkPassword = checkEditText(password)
             if(checkPassword == null){
                 password.requestFocus()
@@ -53,7 +51,7 @@ class GitHubLoginFragment:Fragment() {
             //testuser7891
             //goldcatchadmit72
 
-            gitHubViewModel.service.loginToGithub(checkPassword,checkUsername)
+            gitHubViewModel.loginToGithub(checkPassword,checkUsername)
                 .subscribeOn(Schedulers.io())
                 .subscribeBy{
                     if(it.isFailure){
@@ -64,11 +62,11 @@ class GitHubLoginFragment:Fragment() {
                     }
                     else{
                         Log.i("succ",it.getOrNull()?.toString())
-                        sharedPreferences.edit().putString("access_token",it.getOrNull()!!.response.access_token).apply()
+                        val accessToken = it.getOrNull()!!.response.access_token
+                        sharedPreferences.edit().putString("access_token",accessToken).apply()
                         sharedPreferences.edit().putString("auth_url",it.getOrNull()!!.response.auth_url).apply()
                         val nav = activity!!.findNavController(R.id.nav_host_fragment)
                         nav.navigate(R.id.issues_dest)
-                        onDestroy()
                     }
                 }
 

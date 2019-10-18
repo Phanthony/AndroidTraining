@@ -1,7 +1,6 @@
-package com.example.androidtraining
+package com.example.androidtraining.ui
 
 import android.os.Bundle
-import android.os.Handler
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -14,10 +13,13 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.androidtraining.GitHubRepo
+import com.example.androidtraining.GitHubViewModelDependencies
+import com.example.androidtraining.R
+import com.example.androidtraining.RecyclerViewAdapter
 import com.example.androidtraining.extension.getErrorDialog
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
-import java.lang.Runnable
 
 class RepoFragment : Fragment() {
 

@@ -12,7 +12,7 @@ import io.reactivex.Single
 interface GitHubRepoDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(gitHubRepo: GitHubRepo)
+    fun insertRepo(gitHubRepo: GitHubRepo)
 
     @Query("DELETE FROM Repo_Table")
     fun deleteAllRepos(): Completable
@@ -22,8 +22,5 @@ interface GitHubRepoDAO {
 
     @Query("SELECT COUNT(*) FROM Repo_Table")
     fun getRepoCount(): Single<Int>
-
-    @Query("SELECT * FROM Repo_Table ORDER BY repoStarCount DESC")
-    fun getAllReposTesting(): Single<List<GitHubRepo>>
 
 }

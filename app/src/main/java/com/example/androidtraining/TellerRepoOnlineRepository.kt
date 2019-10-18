@@ -1,6 +1,5 @@
 package com.example.androidtraining
 
-import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age
@@ -8,7 +7,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 
-class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerOnlineRepository.GetReposRequirement, GitHubRepoList>() {
+class TellerRepoOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"
@@ -39,7 +38,7 @@ class TellerOnlineRepository(private val db: GitHubRepoDataBase, private val ser
 
     override fun saveCache(cache: GitHubRepoList, requirements: GetReposRequirement) {
         for (repos in cache.items){
-            db.gitHubRepoDAO().insert(repos)
+            db.gitHubRepoDAO().insertRepo(repos)
         }
     }
 

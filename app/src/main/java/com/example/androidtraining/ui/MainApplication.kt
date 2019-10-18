@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.ui
 
 import android.app.Application
 import com.levibostian.teller.Teller

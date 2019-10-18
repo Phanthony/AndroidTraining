@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.androidtraining.service.logger.AppActivityLogger
+import com.example.androidtraining.service.GitHubApi
 import com.google.common.truth.Truth.assertThat
 import com.levibostian.teller.Teller
 import com.levibostian.teller.cachestate.OnlineCacheState
@@ -91,7 +91,8 @@ class GitHubViewModelIntegrationTests {
         networkBehavior.setFailurePercent(failPercent)
     }
 
-    class MockGitHubApiFail(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
+    class MockGitHubApiFail(private var delegate: BehaviorDelegate<GitHubApi>) :
+        GitHubApi {
         private val mockFail = IOException("Failed")
         private var failure: Call<GitHubRepoList> = Calls.failure(mockFail)
         override fun getRepo(q: String): Single<Result<GitHubRepoList>> {
@@ -99,7 +100,8 @@ class GitHubViewModelIntegrationTests {
         }
     }
 
-    class MockGitHubApiResponseFail(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
+    class MockGitHubApiResponseFail(private var delegate: BehaviorDelegate<GitHubApi>) :
+        GitHubApi {
         private var failure: Call<GitHubRepoList> =
             Calls.response(Response.error(400, ResponseBody.create(MediaType.parse("This is an error"), "This is an error, bad data")))
 
@@ -108,7 +110,8 @@ class GitHubViewModelIntegrationTests {
         }
     }
 
-    class MockGitHubApiResponseFail500Error(private var delegate: BehaviorDelegate<GitHubApi>) : GitHubApi {
+    class MockGitHubApiResponseFail500Error(private var delegate: BehaviorDelegate<GitHubApi>) :
+        GitHubApi {
         private var failure: Call<GitHubRepoList> =
             Calls.response(Response.error(500, ResponseBody.create(MediaType.parse(""), "")))
 
@@ -127,12 +130,12 @@ class GitHubViewModelIntegrationTests {
     }
 
     private fun createRepository(service: GitHubApi) {
-        //onlineRepository = TellerOnlineRepository(mDB, RetroFitService(service), ResponseProcessor(ApplicationProvider.getApplicationContext<Context>(), AppActivityLogger(), MoshiJsonAdapter()))
+        //onlineRepository = TellerRepoOnlineRepository(mDB, RetroFitService(service), ResponseProcessor(ApplicationProvider.getApplicationContext<Context>(), AppActivityLogger(), MoshiJsonAdapter()))
         gitHubViewModelInjected = GitHubViewModelInjected(onlineRepository, mday)
     }
 
     private var mday = DayInformation()
-    private var requirements = TellerOnlineRepository.GetReposRequirement(mday)
+    private var requirements = TellerRepoOnlineRepository.GetReposRequirement(mday)
     private lateinit var retrofit: Retrofit
     private lateinit var networkBehavior: NetworkBehavior
     private lateinit var mockRetrofit: MockRetrofit
@@ -142,7 +145,7 @@ class GitHubViewModelIntegrationTests {
     private lateinit var mDB: GitHubRepoDataBase
     private lateinit var gitHubRepoDAO: GitHubRepoDAO
 
-    private lateinit var onlineRepository: TellerOnlineRepository
+    private lateinit var onlineRepository: TellerRepoOnlineRepository
 
     private lateinit var gitHubViewModelInjected: GitHubViewModelInjected
 
@@ -177,8 +180,8 @@ class GitHubViewModelIntegrationTests {
     fun testInsertReplace() {
         mGitHubApi = MockGitHubApiFail(delegate)
         createRepository(mGitHubApi)
-        gitHubRepoDAO.insert(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 1, null, 1))
-        gitHubRepoDAO.insert(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 10, "fake description", 1))
+        gitHubRepoDAO.insertRepo(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 1, null, 1))
+        gitHubRepoDAO.insertRepo(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 10, "fake description", 1))
         assertEquals(1, gitHubRepoDAO.getRepoCount().blockingGet())
     }
 
