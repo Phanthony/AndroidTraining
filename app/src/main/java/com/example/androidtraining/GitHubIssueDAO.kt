@@ -1,4 +1,4 @@
-package com.example.androidtraining.ui
+package com.example.androidtraining
 
 import androidx.room.Dao
 import androidx.room.Insert

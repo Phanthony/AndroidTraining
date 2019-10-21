@@ -18,6 +18,8 @@
     <string name="LoginDisplay">Log into GitHub</string>
     <string name="Username">username</string>
     <string name="Password">password</string>
+    <string name="Login">Login</string>
+    <string name="issueDesc">opened by %s for repository %s</string>
     <string name="error_network_connection_issue">You have a bad Internet connection. Reconnect, then try again.</string>
     <string name="error_500_600_response_code">Sorry! There seems to be an error with the system. The team has been notified. Try again later.</string>
     <string name="unhandled_http_result_message">Sorry! There seems to be an issue. The team has been notified. Try again later.</string>

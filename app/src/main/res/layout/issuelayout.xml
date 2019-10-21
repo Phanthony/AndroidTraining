@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal"
+        android:weightSum="1.0"
+>
+
+    <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/IssueStateImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+    />
+
+    <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.0"
+            android:orientation="vertical"
+            android:layout_marginStart="7dp"
+            android:weightSum="1.0"
+    >
+        <TextView
+                android:id="@+id/IssueTitle"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.6"
+                android:text="This is an example issue that I have with this repo"
+                android:gravity="center_vertical"
+                android:textSize="13sp"
+        />
+
+        <TextView
+                android:id="@+id/IssueDesc"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.4"
+                android:text="@string/issueDesc"
+                android:gravity="center_vertical"
+                android:textSize="12sp"
+        />
+    </LinearLayout>
+
+
+    <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/comments"
+    />
+    <TextView
+            android:layout_marginEnd="5dp"
+            android:id="@+id/IssueCommentNum"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|left"
+            android:text="99"
+    />
+
+</LinearLayout>

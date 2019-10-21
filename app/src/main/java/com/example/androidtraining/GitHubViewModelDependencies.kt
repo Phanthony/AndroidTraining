@@ -11,10 +11,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import androidx.lifecycle.LiveDataReactiveStreams.*
-import com.example.androidtraining.service.AuthMobileRequestBody
-import com.example.androidtraining.service.DevApi
-import com.example.androidtraining.service.GitHubApi
-import com.example.androidtraining.service.GitHubLoginResult
+import com.example.androidtraining.service.*
 import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.example.androidtraining.service.interceptor.AuthHeaderInterceptor
 import com.example.androidtraining.service.logger.AppActivityLogger
@@ -35,45 +32,64 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
 
     private val compositeDisposable: CompositeDisposable
     private val gitHubViewModelInjected: GitHubViewModelInjected
-    private val dataBase: GitHubRepoDataBase = GitHubRepoDataBase.getInstance(application)!!
+    private val dataBase: GitHubDataBase = GitHubDataBase.getInstance(application)!!
     private val tellerRepoRepository: TellerRepoOnlineRepository
     private val responseProcessor = ResponseProcessor(application, AppActivityLogger(), MoshiJsonAdapter())
     private val service: Service
 
 
-
     init {
-        val accessToken = application.getSharedPreferences("github", Context.MODE_PRIVATE).getString("access_token", null)
+        val accessToken =
+            application.getSharedPreferences("github", Context.MODE_PRIVATE).getString("access_token", null)
         val repoService = buildRetrofitGitHub(accessToken)
-        val loginService = Retrofit.Builder()
+        val loginService = buildRetrofitDev()
+        service = RetroFitService(repoService, loginService, responseProcessor)
+        val dayInformation = DayInformation()
+        compositeDisposable = CompositeDisposable()
+        tellerRepoRepository = TellerRepoOnlineRepository(dataBase, service)
+        gitHubViewModelInjected = GitHubViewModelInjected(tellerRepoRepository, dayInformation, service, null)
+        gitHubViewModelInjected.initialSetup()
+        if (accessToken != null) {
+            buildTellerIssueRepository(accessToken)
+        }
+    }
+
+    fun buildTellerIssueRepository(auth: String) {
+        val gHService = buildRetrofitGitHub(auth)
+        val devService = buildRetrofitDev()
+        val service = RetroFitService(gHService, devService, responseProcessor)
+        gitHubViewModelInjected.updateIssueRepository(TellerIssueOnlineRepository(dataBase, service))
+    }
+
+    fun buildRetrofitDev(): DevApi {
+        return Retrofit.Builder()
             .baseUrl("https://devclassserver.foundersclub.software")
             .addConverterFactory(MoshiConverterFactory.create())
             .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
             .build()
             .create(DevApi::class.java)
-        service = RetroFitService(repoService,loginService, responseProcessor)
-        val dayInformation = DayInformation()
-        compositeDisposable = CompositeDisposable()
-        tellerRepoRepository = TellerRepoOnlineRepository(dataBase, service)
-        gitHubViewModelInjected = GitHubViewModelInjected(tellerRepoRepository, dayInformation, service)
-        gitHubViewModelInjected.initialSetup()
-    }
-
-    fun buildTellerIssueRepository(){
-
     }
 
     fun buildRetrofitGitHub(auth: String?): GitHubApi {
-        val client = OkHttpClient.Builder()
-            .addNetworkInterceptor(AuthHeaderInterceptor(auth))
-            .build()
-        return Retrofit.Builder()
-            .client(client)
-            .baseUrl("https://api.github.com/")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-            .build()
-            .create(GitHubApi::class.java)
+        if (auth != null) {
+            val client = OkHttpClient.Builder()
+                .addNetworkInterceptor(AuthHeaderInterceptor(auth))
+                .build()
+            return Retrofit.Builder()
+                .client(client)
+                .baseUrl("https://api.github.com/")
+                .addConverterFactory(MoshiConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                .build()
+                .create(GitHubApi::class.java)
+        } else {
+            return Retrofit.Builder()
+                .baseUrl("https://api.github.com/")
+                .addConverterFactory(MoshiConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                .build()
+                .create(GitHubApi::class.java)
+        }
     }
 
     fun getComposite(): CompositeDisposable {
@@ -85,20 +101,40 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
     }
 
-    fun userRefresh() {
-        gitHubViewModelInjected.refreshCache()
+    fun userRepoRefresh() {
+        gitHubViewModelInjected.refreshRepoCache()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe()
             .addTo(compositeDisposable)
     }
 
-    fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>>{
-        return gitHubViewModelInjected.loginToGithub(password,username)
+    fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>> {
+        return gitHubViewModelInjected.loginToGithub(password, username)
+    }
+
+    fun getIssueObservable(): LiveData<OnlineCacheState<List<GitHubIssue>>>{
+        val observable = gitHubViewModelInjected.getAllIssuesObservable()
+        return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
+    }
+
+    fun userIssueRefresh(){
+        gitHubViewModelInjected.refreshIssueCache()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+            .addTo(compositeDisposable)
     }
 
 }
 
-class GitHubViewModelInjected(private val repositoryRepo: TellerRepoOnlineRepository, private val day: DayInformation, private val service: Service) {
+class GitHubViewModelInjected(
+    private val repositoryRepo: TellerRepoOnlineRepository,
+    private val day: DayInformation,
+    private val service: Service,
+    private var repositoryIssue: TellerIssueOnlineRepository?
+) {
+    fun updateIssueRepository(updated: TellerIssueOnlineRepository){
+        repositoryIssue = updated
+    }
 
     fun initialSetup() {
         val repoRequirements = TellerRepoOnlineRepository.GetReposRequirement(day)
@@ -109,27 +145,46 @@ class GitHubViewModelInjected(private val repositoryRepo: TellerRepoOnlineReposi
         return repositoryRepo.observe()
     }
 
-    fun refreshCache(): Single<OnlineRepository.RefreshResult> {
+    fun getAllIssuesObservable(): Observable<OnlineCacheState<List<GitHubIssue>>> {
+        return repositoryIssue!!.observe()
+    }
+
+    fun refreshRepoCache(): Single<OnlineRepository.RefreshResult> {
         return repositoryRepo.refresh(true)
     }
 
-    fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>>{
-        return service.loginToGithub(password,username)
+    fun refreshIssueCache(): Single<OnlineRepository.RefreshResult>{
+        return repositoryIssue!!.refresh(true)
+    }
+
+    fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>> {
+        return service.loginToGithub(password, username)
     }
 
 }
 
-class RetroFitService(private val ghService: GitHubApi, private val devService: DevApi, private val responseProcessor: ResponseProcessor) : Service {
+class RetroFitService(
+    private val ghService: GitHubApi,
+    private val devService: DevApi,
+    private val responseProcessor: ResponseProcessor
+) : Service {
+    override fun getIssues(): Single<Result<List<GitHubIssue>>> {
+        return ghService.getIssues().map { result ->
+            val processedResponse = responseProcessor.process(result)
+            val kotlinResult = if (processedResponse.isFailure()) {
+                Result.failure(processedResponse.error!!)
+            } else {
+                Result.success(processedResponse.body!!)
+            }
+            kotlinResult
+        }
+    }
+
     override fun getRepos(day: String): Single<Result<GitHubRepoList>> {
         val rxResult = ghService.getRepo("created:%3E$day+language:kotlin+stars:%3E0")
-        return rxResult.map{ result ->
-            val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
-                when (code) {
-                    400 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
-                    else -> null
-                }
-            }
-            val kotlinResult = if (processedResponse.isFailure()){
+        return rxResult.map { result ->
+            val processedResponse = responseProcessor.process(result)
+            val kotlinResult = if (processedResponse.isFailure()) {
                 Result.failure(processedResponse.error!!)
             } else {
                 Result.success(processedResponse.body!!)
@@ -147,15 +202,14 @@ class RetroFitService(private val ghService: GitHubApi, private val devService: 
                 password,
                 username
             )
-        ).map {
-                result ->
+        ).map { result ->
             val processedResponse = responseProcessor.process(result) { code, response, errorBody, jsonAdapter ->
                 when (code) {
                     401 -> jsonAdapter.fromJson(errorBody, UserEnteredBadDataResponseError::class.java)
                     else -> null
                 }
             }
-            val kotlinResult = if (processedResponse.isFailure()){
+            val kotlinResult = if (processedResponse.isFailure()) {
                 Result.failure(processedResponse.error!!)
             } else {
                 Result.success(processedResponse.body!!)
@@ -170,6 +224,8 @@ interface Service {
     fun getRepos(day: String): Single<Result<GitHubRepoList>>
 
     fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>>
+
+    fun getIssues(): Single<Result<List<GitHubIssue>>>
 }
 
 class DayInformation : Day {

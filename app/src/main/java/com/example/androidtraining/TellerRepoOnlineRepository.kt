@@ -7,7 +7,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 
 
-class TellerRepoOnlineRepository(private val db: GitHubRepoDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
+class TellerRepoOnlineRepository(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"

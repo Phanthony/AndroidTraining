@@ -8,7 +8,7 @@
         android:id="@+id/OuterLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.MainActivity">
+        tools:context=".MainActivity">
 
     <androidx.appcompat.widget.Toolbar
             style="@style/ActionBar"

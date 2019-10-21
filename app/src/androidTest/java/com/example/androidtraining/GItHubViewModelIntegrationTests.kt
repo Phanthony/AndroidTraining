@@ -142,7 +142,7 @@ class GitHubViewModelIntegrationTests {
     private lateinit var delegate: BehaviorDelegate<GitHubApi>
     private lateinit var mGitHubApi: GitHubApi
 
-    private lateinit var mDB: GitHubRepoDataBase
+    private lateinit var mDB: GitHubDataBase
     private lateinit var gitHubRepoDAO: GitHubRepoDAO
 
     private lateinit var onlineRepository: TellerRepoOnlineRepository
@@ -154,7 +154,7 @@ class GitHubViewModelIntegrationTests {
 
         //Set up mock database
         val context = ApplicationProvider.getApplicationContext<Context>()
-        mDB = Room.inMemoryDatabaseBuilder(context, GitHubRepoDataBase::class.java).allowMainThreadQueries().fallbackToDestructiveMigration().build()
+        mDB = Room.inMemoryDatabaseBuilder(context, GitHubDataBase::class.java).allowMainThreadQueries().fallbackToDestructiveMigration().build()
         gitHubRepoDAO = mDB.gitHubRepoDAO()
         //Set up mock retrofit
         retrofit = Retrofit.Builder()

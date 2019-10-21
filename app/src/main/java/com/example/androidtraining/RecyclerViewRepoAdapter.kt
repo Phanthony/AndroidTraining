@@ -11,8 +11,8 @@ import kotlinx.android.synthetic.main.repolayout.view.*
 import kotlin.collections.ArrayList
 
 
-class RecyclerViewAdapter(private val repoList: ArrayList<GitHubRepo>,
-                          private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>(){
+class RecyclerViewRepoAdapter(private val repoList: ArrayList<GitHubRepo>,
+                              private val context: Context) : RecyclerView.Adapter<RecyclerViewRepoAdapter.ViewHolder>(){
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val repoName = itemView.RepoNameAuthor!!

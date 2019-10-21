@@ -7,7 +7,7 @@ import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
 
-class TellerIssueOnlineRepository(): OnlineRepository<List<GitHubIssue>, TellerIssueOnlineRepository.GetIssuesRequirement, List<GitHubIssue>>() {
+class TellerIssueOnlineRepository(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubIssue>, TellerIssueOnlineRepository.GetIssuesRequirement, List<GitHubIssue>>() {
 
     class GetIssuesRequirement: GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "All Issues"
@@ -16,7 +16,17 @@ class TellerIssueOnlineRepository(): OnlineRepository<List<GitHubIssue>, TellerI
     override var maxAgeOfCache = Age(7, Age.Unit.DAYS)
 
     override fun fetchFreshCache(requirements: GetIssuesRequirement): Single<FetchResponse<List<GitHubIssue>>> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return service.getIssues()
+            .map { result ->
+                val fetchResponse: FetchResponse<List<GitHubIssue>> = if (result.isFailure){
+                    FetchResponse.fail(result.exceptionOrNull()!!)
+                }
+                else{
+                    FetchResponse.success(result.getOrNull()!!)
+                }
+
+                fetchResponse
+        }
     }
 
     override fun isCacheEmpty(cache: List<GitHubIssue>, requirements: GetIssuesRequirement): Boolean {
@@ -24,11 +34,13 @@ class TellerIssueOnlineRepository(): OnlineRepository<List<GitHubIssue>, TellerI
     }
 
     override fun observeCache(requirements: GetIssuesRequirement): Observable<List<GitHubIssue>> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return db.gitHubIssueDAO().getAllIssues()
     }
 
     override fun saveCache(cache: List<GitHubIssue>, requirements: GetIssuesRequirement) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        for (issues in cache){
+            db.gitHubIssueDAO().insertIssue(issues)
+        }
     }
 
 

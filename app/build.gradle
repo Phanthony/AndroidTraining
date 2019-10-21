@@ -79,7 +79,7 @@ dependencies {
     //Retrofit
     def retrofitVersion = "2.5.0"
     implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+    implementation "com.squareup.retrofit2:repoAdapter-rxjava2:$retrofitVersion"
     implementation "com.squareup.retrofit2:converter-moshi:$retrofitVersion"
 
     // JUnit

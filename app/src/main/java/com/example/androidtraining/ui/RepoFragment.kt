@@ -16,7 +16,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidtraining.GitHubRepo
 import com.example.androidtraining.GitHubViewModelDependencies
 import com.example.androidtraining.R
-import com.example.androidtraining.RecyclerViewAdapter
+import com.example.androidtraining.RecyclerViewRepoAdapter
 import com.example.androidtraining.extension.getErrorDialog
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
@@ -25,11 +25,11 @@ class RepoFragment : Fragment() {
 
     private var lastTime: Long? = null
     private var timeCycle = true
-    lateinit var adapter: RecyclerViewAdapter
+    lateinit var repoAdapter: RecyclerViewRepoAdapter
     lateinit var coTimer : CoroutineScope
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        adapter = RecyclerViewAdapter(arrayListOf(), activity!!)
+        repoAdapter = RecyclerViewRepoAdapter(arrayListOf(), activity!!)
         super.onCreate(savedInstanceState)
     }
 
@@ -46,12 +46,12 @@ class RepoFragment : Fragment() {
         //Set up The RecycleView with Swipe Refresh
         val repoSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewSwipeRefresh)
         repoList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
-        repoList.adapter = adapter
+        repoList.adapter = repoAdapter
 
 
         repoSwipeRefresh.setOnRefreshListener {
             informationToast.show()
-            gitHubViewModel.userRefresh()
+            gitHubViewModel.userRepoRefresh()
         }
 
         gitHubViewModel.getRepoObservable().observe(this, Observer<OnlineCacheState<List<GitHubRepo>>> { cacheStatus ->
@@ -78,8 +78,8 @@ class RepoFragment : Fragment() {
                         else -> {
                             // update shown cache
                             lastTime = lastSuccessfulFetch.time
-                            adapter.clear()
-                            adapter.addAll(cache)
+                            repoAdapter.clear()
+                            repoAdapter.addAll(cache)
                         }
                     }
                     if (justSuccessfullyFetched) {
