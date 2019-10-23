@@ -36,13 +36,13 @@ class IssuesFragment : Fragment() {
         val view = inflater.inflate(R.layout.issue_fragment_layout,container,false)
 
         val issueList = view.findViewById<RecyclerView>(R.id.IssueList)
-        val informationToast = Toast.makeText(activity, getString(R.string.fetchRepos), Toast.LENGTH_SHORT)
+        val informationToast = Toast.makeText(activity, getString(R.string.fetchIssues), Toast.LENGTH_SHORT)
 
         val gitHubViewModel = activity!!.run {
             ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
         }
 
-        val issueSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewSwipeRefresh)
+        val issueSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewIssueSwipeRefresh)
         issueList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
         issueList.adapter = issueAdapter
 

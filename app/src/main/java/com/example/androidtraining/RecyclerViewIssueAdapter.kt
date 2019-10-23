@@ -30,8 +30,14 @@ class RecyclerViewIssueAdapter(val issueList: ArrayList<GitHubIssue>, val contex
         }
         holder.stateImage.setImageResource(state)
         holder.issueCommentNum.text = currentIssue.comments.toString()
-        holder.issueName.text = currentIssue.title
-        holder.issueDesc.text = context.getString(R.string.issueDesc).format(currentIssue.user.login,currentIssue.repository.getName())
+        holder.issueName.apply {
+            text = currentIssue.title
+            isSelected = true
+        }
+        holder.issueDesc.apply {
+            text = context.getString(R.string.issueDesc).format(currentIssue.user.login,currentIssue.repository.getName())
+            isSelected = true
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

@@ -13,7 +13,7 @@ class TellerIssueOnlineRepository(private val db: GitHubDataBase, private val se
         override var tag: GetCacheRequirementsTag = "All Issues"
     }
 
-    override var maxAgeOfCache = Age(7, Age.Unit.DAYS)
+    override var maxAgeOfCache = Age(1, Age.Unit.DAYS)
 
     override fun fetchFreshCache(requirements: GetIssuesRequirement): Single<FetchResponse<List<GitHubIssue>>> {
         return service.getIssues()

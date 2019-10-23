@@ -12,7 +12,7 @@ interface GitHubApi {
     @GET("/search/repositories?sort=stars")
     fun getRepo(@Query("q", encoded = true) q: String): Single<Result<GitHubRepoList>>
 
-    @GET("user/issues?filter=all&state=all")
+    @GET("/user/issues?filter=all&state=all&direction=asc")
     fun getIssues(): Single<Result<List<GitHubIssue>>>
 
 }

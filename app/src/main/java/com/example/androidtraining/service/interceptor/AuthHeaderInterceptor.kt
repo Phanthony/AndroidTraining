@@ -10,7 +10,7 @@ class AuthHeaderInterceptor(val authToken: String): Interceptor {
         authToken.let {
             request = request
                 .newBuilder()
-                .addHeader("user", authToken)
+                .addHeader("Authorization", "Bearer $authToken")
                 .build()
         }
 

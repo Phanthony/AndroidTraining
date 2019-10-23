@@ -15,6 +15,7 @@ import androidx.navigation.findNavController
 import com.example.androidtraining.GitHubViewModelDependencies
 import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
+import com.example.androidtraining.extension.updateToolBarText
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 
@@ -66,6 +67,10 @@ class GitHubLoginFragment:Fragment() {
                         sharedPreferences.edit().putString("access_token",accessToken).apply()
                         sharedPreferences.edit().putString("auth_url",it.getOrNull()!!.response.auth_url).apply()
                         val nav = activity!!.findNavController(R.id.nav_host_fragment)
+                        gitHubViewModel.buildTellerIssueRepository(accessToken)
+                        this@GitHubLoginFragment.activity!!.runOnUiThread {
+                            this@GitHubLoginFragment.activity!!.updateToolBarText(context!!.getString(R.string.Issues))
+                        }
                         nav.navigate(R.id.issues_dest)
                     }
                 }

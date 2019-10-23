@@ -4,13 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
-import androidx.lifecycle.LiveDataReactiveStreams.*
+import androidx.lifecycle.LiveDataReactiveStreams.fromPublisher
 import com.example.androidtraining.service.*
 import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.example.androidtraining.service.interceptor.AuthHeaderInterceptor
@@ -18,10 +12,16 @@ import com.example.androidtraining.service.logger.AppActivityLogger
 import com.levibostian.teller.cachestate.OnlineCacheState
 import com.levibostian.teller.repository.OnlineRepository
 import io.reactivex.BackpressureStrategy
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -134,6 +134,8 @@ class GitHubViewModelInjected(
 ) {
     fun updateIssueRepository(updated: TellerIssueOnlineRepository){
         repositoryIssue = updated
+        val issueRequirements = TellerIssueOnlineRepository.GetIssuesRequirement()
+        repositoryIssue!!.requirements = issueRequirements
     }
 
     fun initialSetup() {
