@@ -45,20 +45,22 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         val loginService = buildRetrofitDev()
         service = RetroFitService(repoService, loginService, responseProcessor)
         val dayInformation = DayInformation()
+        val urlHolder = TellerIssueCommentsUrlHolder("")
         compositeDisposable = CompositeDisposable()
         tellerRepoRepository = TellerRepoOnlineRepository(dataBase, service)
-        gitHubViewModelInjected = GitHubViewModelInjected(tellerRepoRepository, dayInformation, service, null)
+        gitHubViewModelInjected = GitHubViewModelInjected(tellerRepoRepository, dayInformation, service, null, null, urlHolder)
         gitHubViewModelInjected.initialSetup()
         if (accessToken != null) {
-            buildTellerIssueRepository(accessToken)
+            buildTellerIssueAndCommentRepository(accessToken)
         }
     }
 
-    fun buildTellerIssueRepository(auth: String) {
+    fun buildTellerIssueAndCommentRepository(auth: String) {
         val gHService = buildRetrofitGitHub(auth)
         val devService = buildRetrofitDev()
         val service = RetroFitService(gHService, devService, responseProcessor)
         gitHubViewModelInjected.updateIssueRepository(TellerIssueOnlineRepository(dataBase, service))
+        gitHubViewModelInjected.updateIssueCommentRepository(TellerIssueCommentsOnlineRepository(dataBase,service))
     }
 
     fun buildRetrofitDev(): DevApi {
@@ -124,14 +126,31 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
             .addTo(compositeDisposable)
     }
 
+    fun updateIssueCommentUrl(newUrl: String){
+        gitHubViewModelInjected.updateIssueCommentUrl(newUrl)
+    }
+
 }
 
 class GitHubViewModelInjected(
     private val repositoryRepo: TellerRepoOnlineRepository,
     private val day: DayInformation,
     private val service: Service,
-    private var repositoryIssue: TellerIssueOnlineRepository?
+    private var repositoryIssue: TellerIssueOnlineRepository?,
+    private var repositoryIssueComment: TellerIssueCommentsOnlineRepository?,
+    private val urlHolder: TellerIssueCommentsUrlHolder
 ) {
+
+    fun updateIssueCommentUrl(newUrl: String){
+        urlHolder.url = newUrl
+    }
+
+    fun updateIssueCommentRepository(updated: TellerIssueCommentsOnlineRepository){
+        repositoryIssueComment = updated
+        val issueCommentRequirements = TellerIssueCommentsOnlineRepository.GetCommentRequirement(urlHolder)
+        repositoryIssueComment!!.requirements = issueCommentRequirements
+    }
+
     fun updateIssueRepository(updated: TellerIssueOnlineRepository){
         repositoryIssue = updated
         val issueRequirements = TellerIssueOnlineRepository.GetIssuesRequirement()
@@ -170,6 +189,19 @@ class RetroFitService(
     private val devService: DevApi,
     private val responseProcessor: ResponseProcessor
 ) : Service {
+    override fun getIssueComments(url: String): Single<Result<List<GitHubIssueComment>>> {
+        return ghService.getIssueComment(url).map { result ->
+            val processedResponse = responseProcessor.process(result)
+            val kotlinResult = if (processedResponse.isFailure()){
+                Result.failure(processedResponse.error!!)
+            }
+            else{
+                Result.success(processedResponse.body!!)
+            }
+            kotlinResult
+        }
+    }
+
     override fun getIssues(): Single<Result<List<GitHubIssue>>> {
         return ghService.getIssues().map { result ->
             val processedResponse = responseProcessor.process(result)
@@ -228,6 +260,8 @@ interface Service {
     fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>>
 
     fun getIssues(): Single<Result<List<GitHubIssue>>>
+
+    fun getIssueComments(url: String): Single<Result<List<GitHubIssueComment>>>
 }
 
 class DayInformation : Day {

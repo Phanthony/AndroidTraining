@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "Repo_Table")
 data class GitHubRepo(
     @ColumnInfo(name = "repoTitle") private var name: String,
-    @Embedded(prefix = "repo") private var owner: GitHubRepoOwner,
+    @Embedded(prefix = "repo") private var owner: GitHubUser,
     @ColumnInfo(name = "repoStarCount") private var stargazers_count: Int,
     @ColumnInfo(name = "repoDescription") private var description: String?,
     @PrimaryKey @ColumnInfo(name = "repoId") private var id: Int
@@ -24,4 +24,4 @@ data class GitHubRepo(
 data class GitHubRepoList(var items: List<GitHubRepo>)
 
 
-data class GitHubRepoOwner(var login: String, var avatar_url: String)
+data class GitHubUser(var login: String, var avatar_url: String)

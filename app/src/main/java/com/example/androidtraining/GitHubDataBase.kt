@@ -5,14 +5,17 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.androidtraining.service.GitHubIssue
+import com.example.androidtraining.service.GitHubIssueComment
 
 
-@Database(entities = [GitHubRepo::class, GitHubIssue::class], version = 1)
+@Database(entities = [GitHubRepo::class, GitHubIssue::class, GitHubIssueComment::class], version = 1)
 abstract class GitHubDataBase : RoomDatabase() {
 
     abstract fun gitHubRepoDAO(): GitHubRepoDAO
 
     abstract fun gitHubIssueDAO(): GitHubIssueDAO
+
+    abstract fun gitHubIssueCommentDAO(): GitHubIssueCommentDAO
 
     companion object {
         private var instance: GitHubDataBase? = null

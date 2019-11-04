@@ -49,35 +49,35 @@ class GitHubViewModelIntegrationTests {
     private fun generateRepoList(): List<GitHubRepo> {
         val test1 = GitHubRepo(
             "test1",
-            GitHubRepoOwner("testLogin1", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            GitHubUser("testLogin1", "https://avatars1.githubusercontent.com/u/930751?v=4"),
             10,
             null,
             1
         )
         val test2 = (GitHubRepo(
             "test2",
-            GitHubRepoOwner("testLogin2", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            GitHubUser("testLogin2", "https://avatars1.githubusercontent.com/u/930751?v=4"),
             1,
             "testDesc2",
             6
         ))
         val test3 = (GitHubRepo(
             "test3",
-            GitHubRepoOwner("testLogin3", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            GitHubUser("testLogin3", "https://avatars1.githubusercontent.com/u/930751?v=4"),
             89,
             "testDesc3",
             7
         ))
         val test4 = (GitHubRepo(
             "test4",
-            GitHubRepoOwner("testLogin4", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            GitHubUser("testLogin4", "https://avatars1.githubusercontent.com/u/930751?v=4"),
             53,
             null,
             8
         ))
         val test5 = (GitHubRepo(
             "test5",
-            GitHubRepoOwner("testLogin5", "https://avatars1.githubusercontent.com/u/930751?v=4"),
+            GitHubUser("testLogin5", "https://avatars1.githubusercontent.com/u/930751?v=4"),
             27,
             "testDesc5",
             9
@@ -180,8 +180,8 @@ class GitHubViewModelIntegrationTests {
     fun testInsertReplace() {
         mGitHubApi = MockGitHubApiFail(delegate)
         createRepository(mGitHubApi)
-        gitHubRepoDAO.insertRepo(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 1, null, 1))
-        gitHubRepoDAO.insertRepo(GitHubRepo("title", GitHubRepoOwner("fakeName", ""), 10, "fake description", 1))
+        gitHubRepoDAO.insertRepo(GitHubRepo("title", GitHubUser("fakeName", ""), 1, null, 1))
+        gitHubRepoDAO.insertRepo(GitHubRepo("title", GitHubUser("fakeName", ""), 10, "fake description", 1))
         assertEquals(1, gitHubRepoDAO.getRepoCount().blockingGet())
     }
 
@@ -293,7 +293,7 @@ class GitHubViewModelIntegrationTests {
         mGitHubApi = MockGitHubApiSuccess(delegate, mGithubReposList)
         createRepository(mGitHubApi)
 
-        val fakeData = GitHubRepoList(listOf(GitHubRepo("title", GitHubRepoOwner("Owner","url"),9,"desc",18),GitHubRepo("title2", GitHubRepoOwner("Owner2","url2"),12,"desc2",15)))
+        val fakeData = GitHubRepoList(listOf(GitHubRepo("title", GitHubUser("Owner","url"),9,"desc",18),GitHubRepo("title2", GitHubUser("Owner2","url2"),12,"desc2",15)))
 
         val setValues = OnlineRepository.Testing.initState(onlineRepository,requirements){
             cache(fakeData){
