@@ -9,4 +9,6 @@
               android:label="IssuesFragment"/>
     <fragment android:id="@+id/login_dest" android:name="com.example.androidtraining.ui.GitHubLoginFragment"
               android:label="GitHubLoginFragment"/>
+    <fragment android:id="@+id/issue_comment_dest" android:name="com.example.androidtraining.ui.IssueCommentFragment"
+              android:label="IssueCommentFragment"/>
 </navigation>

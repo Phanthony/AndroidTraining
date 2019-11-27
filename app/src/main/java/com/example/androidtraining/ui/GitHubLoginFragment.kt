@@ -67,7 +67,6 @@ class GitHubLoginFragment:Fragment() {
                         sharedPreferences.edit().putString("access_token",accessToken).apply()
                         sharedPreferences.edit().putString("auth_url",it.getOrNull()!!.response.auth_url).apply()
                         val nav = activity!!.findNavController(R.id.nav_host_fragment)
-                        gitHubViewModel.buildTellerIssueAndCommentRepository(accessToken)
                         this@GitHubLoginFragment.activity!!.runOnUiThread {
                             this@GitHubLoginFragment.activity!!.updateToolBarText(context!!.getString(R.string.Issues))
                         }

@@ -8,13 +8,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.androidtraining.service.GitHubIssue
 import kotlinx.android.synthetic.main.issuelayout.view.*
 
-class RecyclerViewIssueAdapter(val issueList: ArrayList<GitHubIssue>, val context: Context): RecyclerView.Adapter<RecyclerViewIssueAdapter.ViewHolder>() {
+class RecyclerViewIssueAdapter(private val issueList: ArrayList<Pair<GitHubIssue,View.OnClickListener>>, val context: Context): RecyclerView.Adapter<RecyclerViewIssueAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val stateImage = itemView.IssueStateImage
         val issueName = itemView.IssueTitle
         val issueDesc = itemView.IssueDesc
         val issueCommentNum = itemView.IssueCommentNum
+        val issueLayout = itemView.issueLayout
     }
 
     override fun getItemCount(): Int {
@@ -22,7 +23,7 @@ class RecyclerViewIssueAdapter(val issueList: ArrayList<GitHubIssue>, val contex
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val currentIssue = issueList[position]
+        val currentIssue = issueList[position].first
         val state = if(currentIssue.state == "open"){
             R.drawable.open
         } else{
@@ -38,6 +39,7 @@ class RecyclerViewIssueAdapter(val issueList: ArrayList<GitHubIssue>, val contex
             text = context.getString(R.string.issueDesc).format(currentIssue.user.login,currentIssue.repository.getName())
             isSelected = true
         }
+        holder.issueLayout.setOnClickListener(issueList[position].second)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -51,7 +53,7 @@ class RecyclerViewIssueAdapter(val issueList: ArrayList<GitHubIssue>, val contex
 
     }
 
-    fun addAll(itemList: List<GitHubIssue>){
+    fun addAll(itemList: List<Pair<GitHubIssue,View.OnClickListener>>){
         for (issue in itemList){
             issueList.add(issue)
         }

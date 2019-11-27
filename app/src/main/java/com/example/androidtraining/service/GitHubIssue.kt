@@ -16,5 +16,4 @@ data class GitHubIssue(
     @Embedded(prefix = "issueCreated") val user: GitHubUser,
     @ColumnInfo(name = "issueComments") val comments: Int,
     @ColumnInfo(name = "issueLastUpdate") val updated_at: String,
-    @Embedded(prefix = "issueFor") val repository: GitHubRepo
-)
+    @Embedded(prefix = "issueFor") val repository: GitHubRepo)

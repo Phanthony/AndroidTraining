@@ -10,63 +10,64 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.findNavController
+import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidtraining.GitHubViewModelDependencies
 import com.example.androidtraining.R
-import com.example.androidtraining.RecyclerViewIssueAdapter
+import com.example.androidtraining.RecyclerViewIssueCommentAdapter
 import com.example.androidtraining.extension.getErrorDialog
-import com.example.androidtraining.service.GitHubIssue
+import com.example.androidtraining.service.GitHubIssueComment
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
 
-class IssuesFragment : Fragment() {
-
+class IssueCommentFragment: Fragment() {
     private var lastTime: Long? = null
     private var timeCycle = true
     lateinit var coTimer : CoroutineScope
-    lateinit var issueAdapter : RecyclerViewIssueAdapter
+    lateinit var adapter : RecyclerViewIssueCommentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        issueAdapter = RecyclerViewIssueAdapter(arrayListOf(),activity!!)
+        adapter = RecyclerViewIssueCommentAdapter(arrayListOf(),this.context!!)
         super.onCreate(savedInstanceState)
     }
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.issue_fragment_layout,container,false)
 
-        val issueList = view.findViewById<RecyclerView>(R.id.IssueList)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.issuecomment_fragment_layout,container,false)
+
+        val commentList = view.findViewById<RecyclerView>(R.id.IssueCommentList)
         val informationToast = Toast.makeText(activity, getString(R.string.fetchIssues), Toast.LENGTH_SHORT)
 
         val gitHubViewModel = activity!!.run {
             ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
         }
 
-        val issueSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewIssueSwipeRefresh)
-        issueList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
-        issueList.adapter = issueAdapter
+        val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.IssueCommentRecycleViewSwipeRefresh)
 
-        issueSwipeRefresh.setOnRefreshListener {
+        commentList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
+        commentList.adapter = adapter
+
+        swipeRefresh.setOnRefreshListener {
             informationToast.show()
-            gitHubViewModel.userIssueRefresh()
+            gitHubViewModel.userCommentsRefresh()
         }
 
-        gitHubViewModel.getIssueObservable().observe(this, Observer<OnlineCacheState<List<GitHubIssue>>> { cacheStatus ->
+        gitHubViewModel.getIssueCommentObservable().observe(this, Observer<OnlineCacheState<PagedList<GitHubIssueComment>>> { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
                     if (errorDuringFetch != null) {
                         informationToast.cancel()
-                        issueSwipeRefresh.isRefreshing = false
-                        this@IssuesFragment.getErrorDialog(errorDuringFetch.message!!, this@IssuesFragment.context!!).show()
+                        swipeRefresh.isRefreshing = false
+                        this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.context!!).show()
                     }
                 }
                 whenCache { cache, lastSuccessfulFetch, isFetching, justSuccessfullyFetched, errorDuringFetch ->
                     if (errorDuringFetch != null) {
                         lastTime = lastSuccessfulFetch.time
                         informationToast.cancel()
-                        issueSwipeRefresh.isRefreshing = false
-                        this@IssuesFragment.getErrorDialog(errorDuringFetch.message!!, this@IssuesFragment.context!!).show()
+                        swipeRefresh.isRefreshing = false
+                        this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.context!!).show()
                     }
                     when (cache) {
                         null -> {
@@ -74,22 +75,15 @@ class IssuesFragment : Fragment() {
                             lastTime = lastSuccessfulFetch.time
                         }
                         else -> {
-                            val nav = this@IssuesFragment.activity!!.findNavController(R.id.nav_host_fragment)
                             // update shown cache
                             lastTime = lastSuccessfulFetch.time
-                            issueAdapter.clear()
-                            val newList = cache.map { issue ->
-                                Pair(issue,View.OnClickListener{
-                                    gitHubViewModel.changeIssueComment(issue.number,issue.repository.getName(),issue.user.login,issue.id)
-                                    nav.navigate(R.id.issue_comment_dest)
-                                })
-                            }
-                            issueAdapter.addAll(newList)
+                            adapter.clear()
+                            adapter.addAll(cache)
                         }
                     }
                     if (justSuccessfullyFetched) {
                         informationToast.cancel()
-                        issueSwipeRefresh.isRefreshing = false
+                        swipeRefresh.isRefreshing = false
                         lastTime = lastSuccessfulFetch.time
                     }
                 }
@@ -108,7 +102,7 @@ class IssuesFragment : Fragment() {
         super.onDestroyView()
     }
 
-    fun timeHandler(textView: TextView?) {
+    private fun timeHandler(textView: TextView?) {
         coTimer = CoroutineScope(Dispatchers.IO)
         coTimer.launch {
             while (timeCycle) {

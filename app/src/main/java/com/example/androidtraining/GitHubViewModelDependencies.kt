@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataReactiveStreams.fromPublisher
+import androidx.paging.PagedList
 import com.example.androidtraining.service.*
 import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.example.androidtraining.service.interceptor.AuthHeaderInterceptor
@@ -33,34 +34,28 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
     private val compositeDisposable: CompositeDisposable
     private val gitHubViewModelInjected: GitHubViewModelInjected
     private val dataBase: GitHubDataBase = GitHubDataBase.getInstance(application)!!
-    private val tellerRepoRepository: TellerRepoOnlineRepository
     private val responseProcessor = ResponseProcessor(application, AppActivityLogger(), MoshiJsonAdapter())
     private val service: Service
+    private val sharedPreferences = application.getSharedPreferences("github", Context.MODE_PRIVATE)
 
 
     init {
-        val accessToken =
-            application.getSharedPreferences("github", Context.MODE_PRIVATE).getString("access_token", null)
-        val repoService = buildRetrofitGitHub(accessToken)
+        val repoService = buildRetrofitGitHub()
         val loginService = buildRetrofitDev()
         service = RetroFitService(repoService, loginService, responseProcessor)
         val dayInformation = DayInformation()
-        val urlHolder = TellerIssueCommentsUrlHolder("")
         compositeDisposable = CompositeDisposable()
-        tellerRepoRepository = TellerRepoOnlineRepository(dataBase, service)
-        gitHubViewModelInjected = GitHubViewModelInjected(tellerRepoRepository, dayInformation, service, null, null, urlHolder)
+        val tellerRepoRepository = TellerRepoOnlineRepository(dataBase, service)
+        val tellerIssueRepository = TellerIssueOnlineRepository(dataBase, service)
+        val tellerIssueCommentRepository = TellerIssueCommentsOnlineRepository(dataBase, service)
+        gitHubViewModelInjected = GitHubViewModelInjected(
+            tellerRepoRepository,
+            dayInformation,
+            service,
+            tellerIssueRepository,
+            tellerIssueCommentRepository
+        )
         gitHubViewModelInjected.initialSetup()
-        if (accessToken != null) {
-            buildTellerIssueAndCommentRepository(accessToken)
-        }
-    }
-
-    fun buildTellerIssueAndCommentRepository(auth: String) {
-        val gHService = buildRetrofitGitHub(auth)
-        val devService = buildRetrofitDev()
-        val service = RetroFitService(gHService, devService, responseProcessor)
-        gitHubViewModelInjected.updateIssueRepository(TellerIssueOnlineRepository(dataBase, service))
-        gitHubViewModelInjected.updateIssueCommentRepository(TellerIssueCommentsOnlineRepository(dataBase,service))
     }
 
     fun buildRetrofitDev(): DevApi {
@@ -72,26 +67,17 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
             .create(DevApi::class.java)
     }
 
-    fun buildRetrofitGitHub(auth: String?): GitHubApi {
-        if (auth != null) {
-            val client = OkHttpClient.Builder()
-                .addNetworkInterceptor(AuthHeaderInterceptor(auth))
-                .build()
-            return Retrofit.Builder()
-                .client(client)
-                .baseUrl("https://api.github.com/")
-                .addConverterFactory(MoshiConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .build()
-                .create(GitHubApi::class.java)
-        } else {
-            return Retrofit.Builder()
-                .baseUrl("https://api.github.com/")
-                .addConverterFactory(MoshiConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .build()
-                .create(GitHubApi::class.java)
-        }
+    fun buildRetrofitGitHub(): GitHubApi {
+        val client = OkHttpClient.Builder()
+            .addNetworkInterceptor(AuthHeaderInterceptor(sharedPreferences))
+            .build()
+        return Retrofit.Builder()
+            .client(client)
+            .baseUrl("https://api.github.com/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+            .build()
+            .create(GitHubApi::class.java)
     }
 
     fun getComposite(): CompositeDisposable {
@@ -114,52 +100,56 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
         return gitHubViewModelInjected.loginToGithub(password, username)
     }
 
-    fun getIssueObservable(): LiveData<OnlineCacheState<List<GitHubIssue>>>{
+    fun getIssueObservable(): LiveData<OnlineCacheState<List<GitHubIssue>>> {
         val observable = gitHubViewModelInjected.getAllIssuesObservable()
         return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
     }
 
-    fun userIssueRefresh(){
+    fun getIssueCommentObservable(): LiveData<OnlineCacheState<PagedList<GitHubIssueComment>>>{
+        val observable = gitHubViewModelInjected.getAllIssueCommentObservable()
+        return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
+    }
+
+    fun userIssueRefresh() {
         gitHubViewModelInjected.refreshIssueCache()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe()
             .addTo(compositeDisposable)
     }
 
-    fun updateIssueCommentUrl(newUrl: String){
-        gitHubViewModelInjected.updateIssueCommentUrl(newUrl)
+    fun userCommentsRefresh(){
+        gitHubViewModelInjected.refreshCommentCache()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+            .addTo(compositeDisposable)
     }
 
+    fun changeIssueComment(issueNumber: Int,issueName: String,user: String, issueId: Int){
+        gitHubViewModelInjected.updateIssueCommentRequirement(issueNumber,issueName,user,issueId)
+    }
 }
 
 class GitHubViewModelInjected(
     private val repositoryRepo: TellerRepoOnlineRepository,
     private val day: DayInformation,
     private val service: Service,
-    private var repositoryIssue: TellerIssueOnlineRepository?,
-    private var repositoryIssueComment: TellerIssueCommentsOnlineRepository?,
-    private val urlHolder: TellerIssueCommentsUrlHolder
+    private var repositoryIssue: TellerIssueOnlineRepository,
+    private var repositoryIssueComment: TellerIssueCommentsOnlineRepository
 ) {
 
-    fun updateIssueCommentUrl(newUrl: String){
-        urlHolder.url = newUrl
-    }
-
-    fun updateIssueCommentRepository(updated: TellerIssueCommentsOnlineRepository){
-        repositoryIssueComment = updated
-        val issueCommentRequirements = TellerIssueCommentsOnlineRepository.GetCommentRequirement(urlHolder)
-        repositoryIssueComment!!.requirements = issueCommentRequirements
-    }
-
-    fun updateIssueRepository(updated: TellerIssueOnlineRepository){
-        repositoryIssue = updated
-        val issueRequirements = TellerIssueOnlineRepository.GetIssuesRequirement()
-        repositoryIssue!!.requirements = issueRequirements
-    }
-
     fun initialSetup() {
+        val issueRequirements = TellerIssueOnlineRepository.GetIssuesRequirement("null")
         val repoRequirements = TellerRepoOnlineRepository.GetReposRequirement(day)
+        val issueCommentRequirement = TellerIssueCommentsOnlineRepository.GetCommentRequirement(Int.MIN_VALUE,"","",
+            Int.MIN_VALUE)
         repositoryRepo.requirements = repoRequirements
+        repositoryIssue.requirements = issueRequirements
+        repositoryIssueComment.requirements = issueCommentRequirement
+    }
+
+    fun updateIssueCommentRequirement(issueNumber: Int,issueName: String,user: String,issueId: Int){
+        val newRequirements = TellerIssueCommentsOnlineRepository.GetCommentRequirement(issueNumber,issueName,user,issueId)
+        repositoryIssueComment.requirements = newRequirements
     }
 
     fun getAllReposObservable(): Observable<OnlineCacheState<List<GitHubRepo>>> {
@@ -167,15 +157,23 @@ class GitHubViewModelInjected(
     }
 
     fun getAllIssuesObservable(): Observable<OnlineCacheState<List<GitHubIssue>>> {
-        return repositoryIssue!!.observe()
+        return repositoryIssue.observe()
+    }
+
+    fun getAllIssueCommentObservable(): Observable<OnlineCacheState<PagedList<GitHubIssueComment>>>{
+        return repositoryIssueComment.observe()
     }
 
     fun refreshRepoCache(): Single<OnlineRepository.RefreshResult> {
         return repositoryRepo.refresh(true)
     }
 
-    fun refreshIssueCache(): Single<OnlineRepository.RefreshResult>{
-        return repositoryIssue!!.refresh(true)
+    fun refreshIssueCache(): Single<OnlineRepository.RefreshResult> {
+        return repositoryIssue.refresh(true)
+    }
+
+    fun refreshCommentCache(): Single<OnlineRepository.RefreshResult>{
+        return repositoryIssueComment.refresh(true)
     }
 
     fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>> {
@@ -189,16 +187,19 @@ class RetroFitService(
     private val devService: DevApi,
     private val responseProcessor: ResponseProcessor
 ) : Service {
-    override fun getIssueComments(url: String): Single<Result<List<GitHubIssueComment>>> {
-        return ghService.getIssueComment(url).map { result ->
+    override fun getIssueComments(issueNum: Int, issueName: String, user: String, issueId: Int): Single<ResultPaging<List<GitHubIssueComment>>> {
+        return ghService.getIssueComment(issueNum.toString(),user,issueName).map { result ->
             val processedResponse = responseProcessor.process(result)
-            val kotlinResult = if (processedResponse.isFailure()){
+            val kotlinResult = if (processedResponse.isFailure()) {
                 Result.failure(processedResponse.error!!)
-            }
-            else{
+            } else {
                 Result.success(processedResponse.body!!)
             }
-            kotlinResult
+            kotlinResult.getOrNull()?.map { it.issueId = issueId }
+
+            val moreData = result.response()?.headers()?.get("Link")?.contains("rel=\"next") ?: false
+
+            ResultPaging(moreData,kotlinResult)
         }
     }
 
@@ -261,7 +262,7 @@ interface Service {
 
     fun getIssues(): Single<Result<List<GitHubIssue>>>
 
-    fun getIssueComments(url: String): Single<Result<List<GitHubIssueComment>>>
+    fun getIssueComments(issueNum: Int, issueName: String, user: String, issueId: Int): Single<ResultPaging<List<GitHubIssueComment>>>
 }
 
 class DayInformation : Day {
