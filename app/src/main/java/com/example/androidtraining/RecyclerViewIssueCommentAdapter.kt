@@ -1,6 +1,7 @@
 package com.example.androidtraining
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,13 +10,29 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.androidtraining.service.GitHubIssueComment
-import kotlinx.android.synthetic.main.issuecommentlayout.view.*
+import kotlinx.android.synthetic.main.issuecommentlayout_left.view.*
 
 class RecyclerViewIssueCommentAdapter(private val commentList: ArrayList<GitHubIssueComment>, private val context: Context): PagedListAdapter<GitHubIssueComment,RecyclerViewIssueCommentAdapter.ViewHolder>(
     DIFF_CALLBACK) {
+
+    var counter = 0
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val layout = LayoutInflater.from(parent.context).inflate(R.layout.issuecommentlayout,parent,false)
-        return ViewHolder(layout)
+        return if(counter%2==0) {
+            val layout = LayoutInflater.from(parent.context).inflate(R.layout.issuecommentlayout_left, parent, false)
+            counter++
+            ViewHolder(layout)
+        }
+        else{
+            val layout = LayoutInflater.from(parent.context).inflate(R.layout.issuecommentlayout_right, parent, false)
+            counter++
+            ViewHolder(layout)
+        }
+
+    }
+
+    override fun getItemCount(): Int {
+        return commentList.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -29,10 +46,13 @@ class RecyclerViewIssueCommentAdapter(private val commentList: ArrayList<GitHubI
         for(comment in arrayList){
             commentList.add(comment)
         }
+        notifyDataSetChanged()
+        Log.i("Update","Adding all to comment List")
     }
 
     fun clear(){
         commentList.clear()
+        notifyDataSetChanged()
     }
 
     companion object{

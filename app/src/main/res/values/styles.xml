@@ -55,4 +55,9 @@
         <item name="android:textColor">#88404040</item>
     </style>
 
+    <style name="lightBackgroundText">
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">#88404040</item>
+    </style>
+
 </resources>

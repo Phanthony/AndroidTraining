@@ -124,6 +124,10 @@ class GitHubViewModelDependencies(application: Application) : AndroidViewModel(a
             .addTo(compositeDisposable)
     }
 
+    fun changeIssueUser(user: String){
+        gitHubViewModelInjected.updateIssueUserRequirement(user)
+    }
+
     fun changeIssueComment(issueNumber: Int,issueName: String,user: String, issueId: Int){
         gitHubViewModelInjected.updateIssueCommentRequirement(issueNumber,issueName,user,issueId)
     }
@@ -145,6 +149,11 @@ class GitHubViewModelInjected(
         repositoryRepo.requirements = repoRequirements
         repositoryIssue.requirements = issueRequirements
         repositoryIssueComment.requirements = issueCommentRequirement
+    }
+
+    fun updateIssueUserRequirement(user: String){
+        val newReq = TellerIssueOnlineRepository.GetIssuesRequirement(user)
+        repositoryIssue.requirements = newReq
     }
 
     fun updateIssueCommentRequirement(issueNumber: Int,issueName: String,user: String,issueId: Int){

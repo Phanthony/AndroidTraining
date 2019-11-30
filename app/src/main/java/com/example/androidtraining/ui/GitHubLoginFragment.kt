@@ -49,13 +49,11 @@ class GitHubLoginFragment:Fragment() {
                 return@setOnClickListener
             }
 
-            //testuser7891
-            //goldcatchadmit72
-
             gitHubViewModel.loginToGithub(checkPassword,checkUsername)
                 .subscribeOn(Schedulers.io())
                 .subscribeBy{
                     if(it.isFailure){
+
                         Log.i("fail",it.exceptionOrNull()!!.message)
                         this@GitHubLoginFragment.activity!!.runOnUiThread {
                             getErrorDialog(it.exceptionOrNull()!!.message!!,this@GitHubLoginFragment.context!!).show()
@@ -64,8 +62,10 @@ class GitHubLoginFragment:Fragment() {
                     else{
                         Log.i("succ",it.getOrNull()?.toString())
                         val accessToken = it.getOrNull()!!.response.access_token
+                        sharedPreferences.edit().putString("user",checkUsername).apply()
                         sharedPreferences.edit().putString("access_token",accessToken).apply()
                         sharedPreferences.edit().putString("auth_url",it.getOrNull()!!.response.auth_url).apply()
+                        gitHubViewModel.changeIssueUser(checkUsername)
                         val nav = activity!!.findNavController(R.id.nav_host_fragment)
                         this@GitHubLoginFragment.activity!!.runOnUiThread {
                             this@GitHubLoginFragment.activity!!.updateToolBarText(context!!.getString(R.string.Issues))

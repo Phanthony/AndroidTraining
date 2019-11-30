@@ -12,6 +12,7 @@
     <string name="genericNetworkError">A network failure occurred</string>
     <string name="fetchRepos">Fetching Repos</string>
     <string name="fetchIssues">Checking for new issues</string>
+    <string name="fetchComments">Checking for new comments</string>
     <string name="error">Error</string>
     <string name="TrendingRepos">Trending Repos</string>
     <string name="Issues">Issues</string>
@@ -24,4 +25,5 @@
     <string name="error_network_connection_issue">You have a bad Internet connection. Reconnect, then try again.</string>
     <string name="error_500_600_response_code">Sorry! There seems to be an error with the system. The team has been notified. Try again later.</string>
     <string name="unhandled_http_result_message">Sorry! There seems to be an issue. The team has been notified. Try again later.</string>
+    <string name="nothingToShow">There\'s nothing to show!</string>
 </resources>

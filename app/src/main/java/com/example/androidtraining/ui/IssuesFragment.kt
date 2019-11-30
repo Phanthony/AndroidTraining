@@ -1,10 +1,12 @@
 package com.example.androidtraining.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -52,6 +54,9 @@ class IssuesFragment : Fragment() {
             gitHubViewModel.userIssueRefresh()
         }
 
+        val issueLayout = view.findViewById<LinearLayout>(R.id.issueLayout)
+        val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
+
         gitHubViewModel.getIssueObservable().observe(this, Observer<OnlineCacheState<List<GitHubIssue>>> { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
@@ -74,13 +79,16 @@ class IssuesFragment : Fragment() {
                             lastTime = lastSuccessfulFetch.time
                         }
                         else -> {
+                            nothingToShow.visibility = View.INVISIBLE
+                            issueLayout.visibility = View.VISIBLE
                             val nav = this@IssuesFragment.activity!!.findNavController(R.id.nav_host_fragment)
                             // update shown cache
                             lastTime = lastSuccessfulFetch.time
                             issueAdapter.clear()
                             val newList = cache.map { issue ->
                                 Pair(issue,View.OnClickListener{
-                                    gitHubViewModel.changeIssueComment(issue.number,issue.repository.getName(),issue.user.login,issue.id)
+                                    val user = activity!!.getSharedPreferences("github", Context.MODE_PRIVATE).getString("user","null")
+                                    gitHubViewModel.changeIssueComment(issue.number,issue.repository.getName(),user!!,issue.id)
                                     nav.navigate(R.id.issue_comment_dest)
                                 })
                             }
@@ -88,6 +96,10 @@ class IssuesFragment : Fragment() {
                         }
                     }
                     if (justSuccessfullyFetched) {
+                        if (cacheExistsAndEmpty){
+                            nothingToShow.visibility = View.VISIBLE
+                            issueLayout.visibility = View.INVISIBLE
+                        }
                         informationToast.cancel()
                         issueSwipeRefresh.isRefreshing = false
                         lastTime = lastSuccessfulFetch.time

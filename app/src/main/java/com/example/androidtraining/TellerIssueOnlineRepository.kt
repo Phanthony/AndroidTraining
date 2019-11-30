@@ -9,8 +9,8 @@ import io.reactivex.Single
 
 class TellerIssueOnlineRepository(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubIssue>, TellerIssueOnlineRepository.GetIssuesRequirement, List<GitHubIssue>>() {
 
-    class GetIssuesRequirement(var access_token: String): GetCacheRequirements{
-        override var tag: GetCacheRequirementsTag = "All Issues for user $access_token"
+    class GetIssuesRequirement(var user: String): GetCacheRequirements{
+        override var tag: GetCacheRequirementsTag = "All Issues for user $user"
     }
 
     override var maxAgeOfCache = Age(1, Age.Unit.DAYS)

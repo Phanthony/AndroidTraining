@@ -5,6 +5,7 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -54,6 +55,9 @@ class RepoFragment : Fragment() {
             gitHubViewModel.userRepoRefresh()
         }
 
+        val repoLayout = view.findViewById<LinearLayout>(R.id.repoLayout)
+        val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
+
         gitHubViewModel.getRepoObservable().observe(this, Observer<OnlineCacheState<List<GitHubRepo>>> { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
@@ -77,12 +81,18 @@ class RepoFragment : Fragment() {
                         }
                         else -> {
                             // update shown cache
+                            nothingToShow.visibility = View.INVISIBLE
+                            repoLayout.visibility = View.VISIBLE
                             lastTime = lastSuccessfulFetch.time
                             repoAdapter.clear()
                             repoAdapter.addAll(cache)
                         }
                     }
                     if (justSuccessfullyFetched) {
+                        if (cacheExistsAndEmpty){
+                            nothingToShow.visibility = View.VISIBLE
+                            repoLayout.visibility = View.INVISIBLE
+                        }
                         informationToast.cancel()
                         repoSwipeRefresh.isRefreshing = false
                         lastTime = lastSuccessfulFetch.time

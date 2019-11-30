@@ -1,34 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+
+<FrameLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
->
+        android:layout_height="match_parent">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/RecycleViewIssueSwipeRefresh"
+    <include layout="@layout/nothing_to_show"/>
+
+    <LinearLayout
+            android:id="@+id/issueLayout"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_gravity="center"
-            android:layout_weight="1.0"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
     >
-        <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/IssueList"
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/RecycleViewIssueSwipeRefresh"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_gravity="center"
+                android:layout_weight="1.0"
+        >
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/IssueList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white"
+            />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <TextView
+                android:id="@+id/IssueLastRefreshTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/white"
+                android:layout_gravity="center"
+                android:textAlignment="center"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
         />
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <TextView
-            android:id="@+id/IssueLastRefreshTime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textAlignment="center"
-            android:textColor="@android:color/black"
-            android:textSize="14sp"
-    />
+    </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>
