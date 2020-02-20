@@ -6,8 +6,9 @@ import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
+import javax.inject.Inject
 
-class TellerIssueOnlineRepository(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubIssue>, TellerIssueOnlineRepository.GetIssuesRequirement, List<GitHubIssue>>() {
+class TellerIssueOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubIssue>, TellerIssueOnlineRepository.GetIssuesRequirement, List<GitHubIssue>>() {
 
     class GetIssuesRequirement(var user: String): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "All Issues for user $user"

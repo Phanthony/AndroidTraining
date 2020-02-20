@@ -5,11 +5,12 @@ import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
+import javax.inject.Inject
 
 
-class TellerRepoOnlineRepository(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
+class TellerRepoOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
-    class GetReposRequirement(val dayInformation: DayInformation): GetCacheRequirements{
+    class GetReposRequirement(val dayInformation: Day): GetCacheRequirements{
         override var tag: GetCacheRequirementsTag = "Trending Kotlin repos"
     }
 

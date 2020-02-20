@@ -10,8 +10,9 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class TellerIssueCommentsOnlineRepository(private val db: GitHubDataBase, private val service: Service) :
+class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service) :
     OnlinePagingRepository<PagedList<GitHubIssueComment>, TellerIssueCommentsOnlineRepository.PagingRequirements, TellerIssueCommentsOnlineRepository.GetCommentRequirement, List<GitHubIssueComment>>(
         PagingRequirements()
     ) {

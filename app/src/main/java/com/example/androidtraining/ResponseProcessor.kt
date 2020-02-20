@@ -6,8 +6,9 @@ import com.example.androidtraining.service.logger.ActivityLogger
 import retrofit2.Response
 import retrofit2.adapter.rxjava2.Result
 import java.io.IOException
+import javax.inject.Inject
 
-class ResponseProcessor(
+class ResponseProcessor @Inject constructor(
     private val context: Context,
     private val logger: ActivityLogger,
     private val jsonAdapter: JsonAdapter

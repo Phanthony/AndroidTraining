@@ -1,8 +1,8 @@
 package com.example.androidtraining.service.logger
 
-import android.os.Bundle
+import javax.inject.Inject
 
-class AppActivityLogger(): ActivityLogger {
+class AppActivityLogger @Inject constructor(): ActivityLogger {
 
     private val loggers: List<ActivityLogger> = listOf(
         LocalDebugAppActivityLogger()
