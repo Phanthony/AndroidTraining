@@ -10,26 +10,33 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
-import com.example.androidtraining.GitHubViewModelDependencies
+import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
+import com.example.androidtraining.extension.onAttachDiGraph
 import com.example.androidtraining.extension.updateToolBarText
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
 class GitHubLoginFragment:Fragment() {
 
     lateinit var sharedPreferences: SharedPreferences
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        onAttachDiGraph().inject(this)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.github_login_fragment_layout,container,false)
         val loginButton = view.findViewById<Button>(R.id.GitHubLoginButton)
 
-        val gitHubViewModel = activity!!.run {
-            ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
-        }
+        val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
 
         sharedPreferences = activity!!.getSharedPreferences("github", Context.MODE_PRIVATE)
         val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)

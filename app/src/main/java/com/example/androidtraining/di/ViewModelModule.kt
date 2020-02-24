@@ -1,7 +1,8 @@
-package com.example.androidtraining
+package com.example.androidtraining.di
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.androidtraining.GitHubViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap

@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.database
 
 import androidx.room.Dao
 import androidx.room.Insert

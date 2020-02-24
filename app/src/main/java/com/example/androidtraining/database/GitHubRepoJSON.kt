@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded

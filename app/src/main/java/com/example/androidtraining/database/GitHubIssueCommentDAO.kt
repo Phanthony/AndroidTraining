@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.database
 
 import androidx.paging.DataSource
 import androidx.room.Dao

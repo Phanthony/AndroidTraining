@@ -1,6 +1,8 @@
-package com.example.androidtraining
+package com.example.androidtraining.service
 
 import android.content.Context
+import com.example.androidtraining.JsonAdapter
+import com.example.androidtraining.R
 import com.example.androidtraining.service.error.*
 import com.example.androidtraining.service.logger.ActivityLogger
 import retrofit2.Response
@@ -30,7 +32,11 @@ class ResponseProcessor @Inject constructor(
                 unhandledHttpResult(result)
             }
         }?.let { resultError ->
-            return ProcessedResult(resultError, resultError.message!!, null)
+            return ProcessedResult(
+                resultError,
+                resultError.message!!,
+                null
+            )
         }
 
         val errorBody = result.response()?.errorBody()?.string()
@@ -45,16 +51,28 @@ class ResponseProcessor @Inject constructor(
             }
             else -> null
         }?.let { networkResponseError ->
-            return ProcessedResult(networkResponseError, networkResponseError.message!!, null)
+            return ProcessedResult(
+                networkResponseError,
+                networkResponseError.message!!,
+                null
+            )
         }
 
         val response = result.response()!!
         return if (!response.isSuccessful) {
             val error = unhandledHttpResult(result)
-            ProcessedResult(error, error.message!!, null)
+            ProcessedResult(
+                error,
+                error.message!!,
+                null
+            )
         } else {
             // Finally. The successful response!
-            return ProcessedResult(null,response.message(),response.body())
+            return ProcessedResult(
+                null,
+                response.message(),
+                response.body()
+            )
         }
     }
 

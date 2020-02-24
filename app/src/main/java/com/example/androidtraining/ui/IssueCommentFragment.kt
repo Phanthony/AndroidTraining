@@ -1,5 +1,6 @@
 package com.example.androidtraining.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,21 +8,31 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.androidtraining.GitHubViewModelDependencies
+import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.RecyclerViewIssueCommentAdapter
 import com.example.androidtraining.extension.getErrorDialog
+import com.example.androidtraining.extension.onAttachDiGraph
 import com.example.androidtraining.service.GitHubIssueComment
 import com.levibostian.teller.cachestate.OnlineCacheState
+import javax.inject.Inject
 
 class IssueCommentFragment: Fragment() {
     lateinit var adapter : RecyclerViewIssueCommentAdapter
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        onAttachDiGraph().inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         adapter = RecyclerViewIssueCommentAdapter(arrayListOf(),this.context!!)
@@ -34,9 +45,7 @@ class IssueCommentFragment: Fragment() {
         val commentList = view.findViewById<RecyclerView>(R.id.IssueCommentList)
         val informationToast = Toast.makeText(activity, getString(R.string.fetchComments), Toast.LENGTH_SHORT)
 
-        val gitHubViewModel = activity!!.run {
-            ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
-        }
+        val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
 
         val swipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.IssueCommentRecycleViewSwipeRefresh)
 
@@ -51,7 +60,7 @@ class IssueCommentFragment: Fragment() {
         val commentLayout = view.findViewById<LinearLayout>(R.id.issueCommentLayout)
         val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
 
-        gitHubViewModel.getIssueCommentObservable().observe(this, Observer<OnlineCacheState<PagedList<GitHubIssueComment>>> { cacheStatus ->
+        gitHubViewModel.getIssueCommentObservable().observe(this.viewLifecycleOwner, Observer<OnlineCacheState<PagedList<GitHubIssueComment>>> { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
                     if (errorDuringFetch != null) {

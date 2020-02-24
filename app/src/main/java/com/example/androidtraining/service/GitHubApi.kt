@@ -1,6 +1,6 @@
 package com.example.androidtraining.service
 
-import com.example.androidtraining.GitHubRepoList
+import com.example.androidtraining.database.GitHubRepoList
 import io.reactivex.Single
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.GET

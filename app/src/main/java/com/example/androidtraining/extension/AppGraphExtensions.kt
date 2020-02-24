@@ -3,7 +3,7 @@ package com.example.androidtraining.extension
 import android.app.Activity
 import android.app.Service
 import androidx.fragment.app.Fragment
-import com.example.androidtraining.AppGraph
+import com.example.androidtraining.di.AppGraph
 import com.example.androidtraining.ui.MainApplication
 
 fun Activity.onCreateDiGraph(): AppGraph {

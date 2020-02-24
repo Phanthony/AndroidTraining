@@ -4,8 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.androidtraining.GitHubRepo
-import com.example.androidtraining.GitHubUser
+import com.example.androidtraining.database.GitHubRepo
+import com.example.androidtraining.database.GitHubUser
 
 @Entity(tableName = "Issue_Table")
 data class GitHubIssue(
@@ -16,4 +16,5 @@ data class GitHubIssue(
     @Embedded(prefix = "issueCreated") val user: GitHubUser,
     @ColumnInfo(name = "issueComments") val comments: Int,
     @ColumnInfo(name = "issueLastUpdate") val updated_at: String,
-    @Embedded(prefix = "issueFor") val repository: GitHubRepo)
+    @Embedded(prefix = "issueFor") val repository: GitHubRepo
+)

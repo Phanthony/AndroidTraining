@@ -1,7 +1,9 @@
-package com.example.androidtraining
+package com.example.androidtraining.database.teller
 
 import androidx.paging.PagedList
 import androidx.paging.toObservable
+import com.example.androidtraining.Service
+import com.example.androidtraining.database.GitHubDataBase
 import com.example.androidtraining.service.GitHubIssueComment
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlinePagingRepository
@@ -89,7 +91,10 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
     private fun goToNextPage() {
         if (morePagesDataToLoad) {
             val currentPage = pagingRequirements.pageNumber
-            pagingRequirements = PagingRequirements(currentPage + 1)
+            pagingRequirements =
+                PagingRequirements(
+                    currentPage + 1
+                )
         }
     }
 

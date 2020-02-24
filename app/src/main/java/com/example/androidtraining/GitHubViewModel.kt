@@ -5,6 +5,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataReactiveStreams.fromPublisher
 import androidx.paging.PagedList
+import com.example.androidtraining.database.GitHubDataBase
+import com.example.androidtraining.database.GitHubRepo
+import com.example.androidtraining.database.GitHubRepoList
+import com.example.androidtraining.database.teller.ResultPaging
+import com.example.androidtraining.database.teller.TellerIssueCommentsOnlineRepository
+import com.example.androidtraining.database.teller.TellerIssueOnlineRepository
+import com.example.androidtraining.database.teller.TellerRepoOnlineRepository
 import com.example.androidtraining.service.*
 import com.example.androidtraining.service.error.UserEnteredBadDataResponseError
 import com.levibostian.teller.cachestate.OnlineCacheState
@@ -118,7 +125,10 @@ class RetroFitService @Inject constructor(
             val moreData =
                 result.response()?.headers()?.get("Link")?.contains("rel=\"next") ?: false
 
-            ResultPaging(moreData, kotlinResult)
+            ResultPaging(
+                moreData,
+                kotlinResult
+            )
         }
     }
 

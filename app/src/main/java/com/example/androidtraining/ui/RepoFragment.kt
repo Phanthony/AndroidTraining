@@ -1,5 +1,6 @@
 package com.example.androidtraining.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.LayoutInflater
@@ -15,11 +16,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.androidtraining.GitHubRepo
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.RecyclerViewRepoAdapter
+import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.extension.getErrorDialog
+import com.example.androidtraining.extension.onAttachDiGraph
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -32,6 +34,10 @@ class RepoFragment : Fragment() {
     lateinit var coTimer : CoroutineScope
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        onAttachDiGraph().inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         repoAdapter = RecyclerViewRepoAdapter(arrayListOf(), activity!!)
@@ -44,13 +50,12 @@ class RepoFragment : Fragment() {
         val repoList = view.findViewById<RecyclerView>(R.id.RepoList)
         val informationToast = Toast.makeText(activity, getString(R.string.fetchRepos), Toast.LENGTH_SHORT)
 
-        val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
-
         //Set up The RecycleView with Swipe Refresh
         val repoSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewSwipeRefresh)
         repoList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
         repoList.adapter = repoAdapter
 
+        val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
 
         repoSwipeRefresh.setOnRefreshListener {
             informationToast.show()
@@ -60,7 +65,7 @@ class RepoFragment : Fragment() {
         val repoLayout = view.findViewById<LinearLayout>(R.id.repoLayout)
         val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
 
-        gitHubViewModel.getRepoObservable().observe(this, Observer<OnlineCacheState<List<GitHubRepo>>> { cacheStatus ->
+        gitHubViewModel.getRepoObservable().observe(this.viewLifecycleOwner, Observer<OnlineCacheState<List<GitHubRepo>>> { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
                     if (errorDuringFetch != null) {

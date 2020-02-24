@@ -1,6 +1,7 @@
 package com.example.androidtraining
 
 import android.content.Context
+import com.example.androidtraining.database.GitHubRepoList
 import com.example.androidtraining.service.*
 import com.example.androidtraining.service.error.NoInternetConnectionException
 import com.example.androidtraining.service.error.ServerErrorException
@@ -34,9 +35,16 @@ class RetrofitServiceTests {
 
     @Test
     fun `getRepos correct String`() {
-        val mResponseProcessor = ResponseProcessor(mApp, AppActivityLogger(), MoshiJsonAdapter())
+        val mResponseProcessor =
+            ResponseProcessor(
+                mApp,
+                AppActivityLogger(),
+                MoshiJsonAdapter()
+            )
         val testService = RetroFitService(mService, mLoginService, mResponseProcessor)
-        val fResult = Single.just(Result.response(Response.success(200, GitHubRepoList(listOf()))))
+        val fResult = Single.just(Result.response(Response.success(200,
+            GitHubRepoList(listOf())
+        )))
         whenever(mService.getRepo(any())).thenReturn(fResult)
         val testString = "1998-03-10"
         val getRepoArgumentCaptor = argumentCaptor<String>()
@@ -47,9 +55,15 @@ class RetrofitServiceTests {
 
     @Test
     fun `getRepos mapping a successful call`() {
-        val mResponseProcessor = ResponseProcessor(mApp, AppActivityLogger(), MoshiJsonAdapter())
+        val mResponseProcessor =
+            ResponseProcessor(
+                mApp,
+                AppActivityLogger(),
+                MoshiJsonAdapter()
+            )
         val testService = RetroFitService(mService, mLoginService, mResponseProcessor)
-        val returnList = GitHubRepoList(listOf())
+        val returnList =
+            GitHubRepoList(listOf())
         val fResult = Single.just(Result.response(Response.success(200, returnList)))
         whenever(mService.getRepo(any())).thenReturn(fResult)
         val single = testService.getRepos("1998-03-10")
@@ -64,7 +78,12 @@ class RetrofitServiceTests {
 
     @Test
     fun `getRepos mapping a failure call`() {
-        val mResponseProcessor = ResponseProcessor(mApp, AppActivityLogger(), MoshiJsonAdapter())
+        val mResponseProcessor =
+            ResponseProcessor(
+                mApp,
+                AppActivityLogger(),
+                MoshiJsonAdapter()
+            )
         val testService = RetroFitService(mService, mLoginService, mResponseProcessor)
         val exception = NoInternetConnectionException("")
         val fResult = Single.just(Result.error<GitHubRepoList>(exception))
@@ -80,7 +99,12 @@ class RetrofitServiceTests {
 
     @Test
     fun `loginToGithub correct username and password`() {
-        val mResponseProcessor = ResponseProcessor(mApp, AppActivityLogger(), MoshiJsonAdapter())
+        val mResponseProcessor =
+            ResponseProcessor(
+                mApp,
+                AppActivityLogger(),
+                MoshiJsonAdapter()
+            )
         val testService = RetroFitService(mService, mLoginService, mResponseProcessor)
         val fResult = Single.just(
             Result.response(
@@ -104,7 +128,12 @@ class RetrofitServiceTests {
 
     @Test
     fun `loginToGithub mapping a successful call`(){
-        val mResponseProcessor = ResponseProcessor(mApp, AppActivityLogger(), MoshiJsonAdapter())
+        val mResponseProcessor =
+            ResponseProcessor(
+                mApp,
+                AppActivityLogger(),
+                MoshiJsonAdapter()
+            )
         val testService = RetroFitService(mService, mLoginService, mResponseProcessor)
         val fResult = Single.just(
             Result.response(
@@ -129,7 +158,12 @@ class RetrofitServiceTests {
 
     @Test
     fun `loginToGithub mapping a failed call`(){
-        val mResponseProcessor = ResponseProcessor(mApp, AppActivityLogger(), MoshiJsonAdapter())
+        val mResponseProcessor =
+            ResponseProcessor(
+                mApp,
+                AppActivityLogger(),
+                MoshiJsonAdapter()
+            )
         val testService = RetroFitService(mService, mLoginService, mResponseProcessor)
         val mResult = Single.just(Result.response(Response.error<GitHubLoginResult>(500, ResponseBody.create(MediaType.parse("error"),"failure"))))
         whenever(mLoginService.loginGithub(any())).thenReturn(mResult)

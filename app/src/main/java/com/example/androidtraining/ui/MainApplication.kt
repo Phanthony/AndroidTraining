@@ -1,9 +1,9 @@
 package com.example.androidtraining.ui
 
 import android.app.Application
-import com.example.androidtraining.AndroidModules
-import com.example.androidtraining.AppGraph
-import com.example.androidtraining.DaggerAppGraph
+import com.example.androidtraining.di.AndroidModules
+import com.example.androidtraining.di.AppGraph
+import com.example.androidtraining.di.DaggerAppGraph
 import com.levibostian.teller.Teller
 
 class MainApplication: Application() {
@@ -17,6 +17,10 @@ class MainApplication: Application() {
     }
 
     fun initAppComponent(): AppGraph {
-        return DaggerAppGraph.builder().androidModules(AndroidModules(this)).build()
+        return DaggerAppGraph.builder().androidModules(
+            AndroidModules(
+                this
+            )
+        ).build()
     }
 }

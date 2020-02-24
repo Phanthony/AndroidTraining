@@ -10,19 +10,22 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.androidtraining.GitHubViewModelDependencies
+import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.RecyclerViewIssueAdapter
 import com.example.androidtraining.extension.getErrorDialog
+import com.example.androidtraining.extension.onAttachDiGraph
 import com.example.androidtraining.service.GitHubIssue
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
 class IssuesFragment : Fragment() {
 
@@ -30,6 +33,13 @@ class IssuesFragment : Fragment() {
     private var timeCycle = true
     lateinit var coTimer : CoroutineScope
     lateinit var issueAdapter : RecyclerViewIssueAdapter
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        onAttachDiGraph().inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         issueAdapter = RecyclerViewIssueAdapter(arrayListOf(),activity!!)
@@ -41,9 +51,7 @@ class IssuesFragment : Fragment() {
         val issueList = view.findViewById<RecyclerView>(R.id.IssueList)
         val informationToast = Toast.makeText(activity, getString(R.string.fetchIssues), Toast.LENGTH_SHORT)
 
-        val gitHubViewModel = activity!!.run {
-            ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
-        }
+        val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
 
         val issueSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewIssueSwipeRefresh)
         issueList.layoutManager = LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
