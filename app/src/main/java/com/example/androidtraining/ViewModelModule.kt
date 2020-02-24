@@ -14,6 +14,6 @@ abstract class ViewModelModule{
 
     @Binds
     @IntoMap
-    @ViewModelKey(GitHubViewModelDependencies::class)
-    abstract fun bindViewModel(viewModel: GitHubViewModelDependencies): ViewModel
+    @ViewModelKey(GitHubViewModel::class)
+    abstract fun bindGitHubViewModel(viewModel: GitHubViewModel): ViewModel
 }

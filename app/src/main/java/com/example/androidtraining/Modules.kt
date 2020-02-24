@@ -16,7 +16,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
 @Module
-class Modules(private val application: Application){
+class AndroidModules(private val application: Application){
 
     @Singleton
     @Provides

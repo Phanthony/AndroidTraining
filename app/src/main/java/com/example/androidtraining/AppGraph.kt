@@ -7,9 +7,11 @@ import javax.inject.Singleton
 
 
 @Singleton
-@Component(modules = [Modules::class])
+@Component(modules = [AndroidModules::class,ViewModelModule::class])
 interface AppGraph {
     fun inject(fragment: IssueCommentFragment)
+
+    fun inject(activity: MainActivity)
 
     fun inject(fragment: RepoFragment)
 }

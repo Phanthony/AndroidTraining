@@ -17,10 +17,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class GitHubViewModelDependencies @Inject constructor(
+class GitHubViewModel @Inject constructor(
     application: Application,
     var repositoryRepo: TellerRepoOnlineRepository,
     var day: Day,

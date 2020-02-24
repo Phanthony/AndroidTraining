@@ -9,18 +9,20 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidtraining.GitHubRepo
-import com.example.androidtraining.GitHubViewModelDependencies
+import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.RecyclerViewRepoAdapter
 import com.example.androidtraining.extension.getErrorDialog
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
 class RepoFragment : Fragment() {
 
@@ -28,6 +30,8 @@ class RepoFragment : Fragment() {
     private var timeCycle = true
     lateinit var repoAdapter: RecyclerViewRepoAdapter
     lateinit var coTimer : CoroutineScope
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         repoAdapter = RecyclerViewRepoAdapter(arrayListOf(), activity!!)
@@ -40,9 +44,7 @@ class RepoFragment : Fragment() {
         val repoList = view.findViewById<RecyclerView>(R.id.RepoList)
         val informationToast = Toast.makeText(activity, getString(R.string.fetchRepos), Toast.LENGTH_SHORT)
 
-        val gitHubViewModel = activity!!.run {
-            ViewModelProviders.of(this)[GitHubViewModelDependencies::class.java]
-        }
+        val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
 
         //Set up The RecycleView with Swipe Refresh
         val repoSwipeRefresh = view.findViewById<SwipeRefreshLayout>(R.id.RecycleViewSwipeRefresh)
