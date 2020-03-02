@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 
 @Singleton
-@Component(modules = [AndroidModules::class, ViewModelModule::class])
+@Component(modules = [AndroidModules::class, ViewModelModule::class, DatabaseModules::class, NetworkModules::class])
 interface AppGraph {
     fun inject(fragment: IssueCommentFragment)
 

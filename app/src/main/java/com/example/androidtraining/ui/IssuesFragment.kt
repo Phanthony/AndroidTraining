@@ -19,9 +19,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
-import com.example.androidtraining.RecyclerViewIssueAdapter
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
+import com.example.androidtraining.recyclerview.RecyclerViewIssueAdapter
 import com.example.androidtraining.service.GitHubIssue
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
@@ -42,7 +42,11 @@ class IssuesFragment : Fragment() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        issueAdapter = RecyclerViewIssueAdapter(arrayListOf(),activity!!)
+        issueAdapter =
+            RecyclerViewIssueAdapter(
+                arrayListOf(),
+                activity!!
+            )
         super.onCreate(savedInstanceState)
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -65,7 +69,7 @@ class IssuesFragment : Fragment() {
         val issueLayout = view.findViewById<LinearLayout>(R.id.issueLayout)
         val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
 
-        gitHubViewModel.getIssueObservable().observe(this, Observer<OnlineCacheState<List<GitHubIssue>>> { cacheStatus ->
+        gitHubViewModel.getIssueObservable().observe(this.viewLifecycleOwner, Observer<OnlineCacheState<List<GitHubIssue>>> { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
                     if (errorDuringFetch != null) {

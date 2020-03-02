@@ -15,6 +15,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'com.example.androidtraining.AndroidTestTestRunner'
 
         kotlinOptions {
             jvmTarget = "1.8"
@@ -127,15 +128,22 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
     androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
-    androidTestImplementation "androidx.test.espresso:espresso-accessibility:$espressoVersion"
-    androidTestImplementation "androidx.test.espresso:espresso-web:$espressoVersion"
+// androidTestImplementation "androidx.test.espresso:espresso-accessibility:$espressoVersion"
+// androidTestImplementation "androidx.test.espresso:espresso-web:$espressoVersion"
     androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
     androidTestImplementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
+    testImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
+    testImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
+    testImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
+// testImplementation "androidx.test.espresso:espresso-accessibility:$espressoVersion"
+// testImplementation "androidx.test.espresso:espresso-web:$espressoVersion"
+    testImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
+    testImplementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
 
     //Glide Image Loading
     def glideVersion = "4.9.0"
     implementation "com.github.bumptech.glide:glide:$glideVersion"
-    annotationProcessor "com.github.bumptech.glide:compiler:$glideVersion"
+    kapt "com.github.bumptech.glide:compiler:$glideVersion"
 
     //RxJava
     implementation 'io.reactivex.rxjava2:rxjava:2.2.9'
@@ -163,5 +171,10 @@ dependencies {
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
     kaptAndroidTest "com.google.dagger:dagger-compiler:$dagger_version"
     kaptTest "com.google.dagger:dagger-compiler:$dagger_version"
+
+    //Mock Web Server
+    def okhttpVersion = "3.12.8"
+    androidTestImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
+    testImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
 
 }

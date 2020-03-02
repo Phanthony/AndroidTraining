@@ -1,10 +1,10 @@
 package com.example.androidtraining.database.teller
 
 import com.example.androidtraining.Day
-import com.example.androidtraining.Service
 import com.example.androidtraining.database.GitHubDataBase
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.database.GitHubRepoList
+import com.example.androidtraining.service.Service
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age

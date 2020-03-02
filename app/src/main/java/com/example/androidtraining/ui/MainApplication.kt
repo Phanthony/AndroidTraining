@@ -6,7 +6,7 @@ import com.example.androidtraining.di.AppGraph
 import com.example.androidtraining.di.DaggerAppGraph
 import com.levibostian.teller.Teller
 
-class MainApplication: Application() {
+open class MainApplication: Application() {
 
     lateinit var appComponent: AppGraph
 
@@ -16,7 +16,7 @@ class MainApplication: Application() {
         appComponent = initAppComponent()
     }
 
-    fun initAppComponent(): AppGraph {
+    open fun initAppComponent(): AppGraph {
         return DaggerAppGraph.builder().androidModules(
             AndroidModules(
                 this

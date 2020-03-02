@@ -1,10 +1,11 @@
-package com.example.androidtraining
+package com.example.androidtraining.recyclerview
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.androidtraining.R
 import com.example.androidtraining.service.GitHubIssue
 import kotlinx.android.synthetic.main.issuelayout.view.*
 
@@ -44,7 +45,9 @@ class RecyclerViewIssueAdapter(private val issueList: ArrayList<Pair<GitHubIssue
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layout = LayoutInflater.from(parent.context).inflate(R.layout.issuelayout,parent,false)
-        return ViewHolder(layout)
+        return ViewHolder(
+            layout
+        )
     }
 
     fun clear(){

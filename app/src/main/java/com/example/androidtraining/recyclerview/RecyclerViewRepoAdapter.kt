@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.recyclerview
 
 import android.content.Context
 import android.util.Log
@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.androidtraining.R
 import com.example.androidtraining.database.GitHubRepo
 import kotlinx.android.synthetic.main.repolayout.view.*
 
@@ -23,7 +24,9 @@ class RecyclerViewRepoAdapter(private val repoList: ArrayList<GitHubRepo>,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layout = LayoutInflater.from(parent.context).inflate(R.layout.repolayout,parent,false)
-        return ViewHolder(layout)
+        return ViewHolder(
+            layout
+        )
     }
 
     override fun getItemCount() = repoList.size

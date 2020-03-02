@@ -1,8 +1,8 @@
 package com.example.androidtraining.database.teller
 
-import com.example.androidtraining.Service
 import com.example.androidtraining.database.GitHubDataBase
 import com.example.androidtraining.service.GitHubIssue
+import com.example.androidtraining.service.Service
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.type.Age

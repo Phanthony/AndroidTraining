@@ -17,9 +17,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
-import com.example.androidtraining.RecyclerViewIssueCommentAdapter
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
+import com.example.androidtraining.recyclerview.RecyclerViewIssueCommentAdapter
 import com.example.androidtraining.service.GitHubIssueComment
 import com.levibostian.teller.cachestate.OnlineCacheState
 import javax.inject.Inject
@@ -35,7 +35,11 @@ class IssueCommentFragment: Fragment() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        adapter = RecyclerViewIssueCommentAdapter(arrayListOf(),this.context!!)
+        adapter =
+            RecyclerViewIssueCommentAdapter(
+                arrayListOf(),
+                this.context!!
+            )
         super.onCreate(savedInstanceState)
     }
 

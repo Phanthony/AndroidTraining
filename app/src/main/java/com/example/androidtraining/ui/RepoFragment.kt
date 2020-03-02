@@ -18,10 +18,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
-import com.example.androidtraining.RecyclerViewRepoAdapter
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
+import com.example.androidtraining.recyclerview.RecyclerViewRepoAdapter
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -40,7 +40,11 @@ class RepoFragment : Fragment() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        repoAdapter = RecyclerViewRepoAdapter(arrayListOf(), activity!!)
+        repoAdapter =
+            RecyclerViewRepoAdapter(
+                arrayListOf(),
+                activity!!
+            )
         super.onCreate(savedInstanceState)
     }
 

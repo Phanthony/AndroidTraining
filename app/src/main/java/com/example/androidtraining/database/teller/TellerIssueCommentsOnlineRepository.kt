@@ -2,9 +2,9 @@ package com.example.androidtraining.database.teller
 
 import androidx.paging.PagedList
 import androidx.paging.toObservable
-import com.example.androidtraining.Service
 import com.example.androidtraining.database.GitHubDataBase
 import com.example.androidtraining.service.GitHubIssueComment
+import com.example.androidtraining.service.Service
 import com.levibostian.teller.repository.GetCacheRequirementsTag
 import com.levibostian.teller.repository.OnlinePagingRepository
 import com.levibostian.teller.type.Age

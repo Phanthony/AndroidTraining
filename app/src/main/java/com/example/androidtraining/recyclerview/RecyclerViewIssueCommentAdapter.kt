@@ -1,4 +1,4 @@
-package com.example.androidtraining
+package com.example.androidtraining.recyclerview
 
 import android.content.Context
 import android.util.Log
@@ -9,11 +9,13 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.androidtraining.R
 import com.example.androidtraining.service.GitHubIssueComment
 import kotlinx.android.synthetic.main.issuecommentlayout_left.view.*
 
-class RecyclerViewIssueCommentAdapter(private val commentList: ArrayList<GitHubIssueComment>, private val context: Context): PagedListAdapter<GitHubIssueComment,RecyclerViewIssueCommentAdapter.ViewHolder>(
-    DIFF_CALLBACK) {
+class RecyclerViewIssueCommentAdapter(private val commentList: ArrayList<GitHubIssueComment>, private val context: Context): PagedListAdapter<GitHubIssueComment, RecyclerViewIssueCommentAdapter.ViewHolder>(
+    DIFF_CALLBACK
+) {
 
     var counter = 0
 
@@ -21,12 +23,16 @@ class RecyclerViewIssueCommentAdapter(private val commentList: ArrayList<GitHubI
         return if(counter%2==0) {
             val layout = LayoutInflater.from(parent.context).inflate(R.layout.issuecommentlayout_left, parent, false)
             counter++
-            ViewHolder(layout)
+            ViewHolder(
+                layout
+            )
         }
         else{
             val layout = LayoutInflater.from(parent.context).inflate(R.layout.issuecommentlayout_right, parent, false)
             counter++
-            ViewHolder(layout)
+            ViewHolder(
+                layout
+            )
         }
 
     }
