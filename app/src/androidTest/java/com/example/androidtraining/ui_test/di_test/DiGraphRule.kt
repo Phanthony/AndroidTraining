@@ -12,10 +12,9 @@ class DiGraphRule : TestWatcher() {
         private set
 
     override fun starting(description: Description?) {
-        super.starting(description)
-
         val app = ApplicationProvider.getApplicationContext<Context>() as TestMainApplication
         graph = app.appComponent as TestAppGraph
+        super.starting(description)
     }
 
 }

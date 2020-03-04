@@ -7,6 +7,8 @@ import com.example.androidtraining.service.logger.AppActivityLogger
 import com.example.androidtraining.ui_test.MockWebServer
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import javax.inject.Singleton
 
 @Module
@@ -21,6 +23,7 @@ class TestNetworkModules {
         )
     }
 
+    @Singleton
     @Provides
     fun provideService(
         devApi: DevApi,
@@ -35,19 +38,27 @@ class TestNetworkModules {
         return AppActivityLogger()
     }
 
-    @Provides
     @Singleton
+    @Provides
     fun provideGithubService(
         serviceProvider: ServiceProvider,
         mockWebServer: MockWebServer
     ): GitHubApi {
-        return serviceProvider.get(mockWebServer.url, GitHubApi::class.java)
+        var temp = ""
+        runBlocking(Dispatchers.IO) {
+            temp = mockWebServer.url
+        }
+        return serviceProvider.get(temp, GitHubApi::class.java)
     }
 
-    @Provides
     @Singleton
+    @Provides
     fun provideDevService(serviceProvider: ServiceProvider, mockWebServer: MockWebServer): DevApi {
-        return serviceProvider.get(mockWebServer.url, DevApi::class.java)
+        var temp = ""
+        runBlocking(Dispatchers.IO) {
+            temp = mockWebServer.url
+        }
+        return serviceProvider.get(temp, DevApi::class.java)
     }
 
 

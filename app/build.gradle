@@ -14,8 +14,7 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunner 'com.example.androidtraining.AndroidTestTestRunner'
+        testInstrumentationRunner 'com.example.androidtraining.ui_test.AndroidTestTestRunner'
 
         kotlinOptions {
             jvmTarget = "1.8"
@@ -68,7 +67,9 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-reactivestreams-ktx:$lifecycle_version"
 
     // Fragment
-    implementation "androidx.fragment:fragment-ktx:1.2.0"
+    def fragmentVersion = "1.2.2"
+    implementation "androidx.fragment:fragment-ktx:$fragmentVersion"
+    debugImplementation "androidx.fragment:fragment-testing:$fragmentVersion"
 
     //Teller
     //def tellerVersion = "0.2.0-alpha"
@@ -173,7 +174,7 @@ dependencies {
     kaptTest "com.google.dagger:dagger-compiler:$dagger_version"
 
     //Mock Web Server
-    def okhttpVersion = "3.12.8"
+    def okhttpVersion = "3.12.0"
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
     testImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
 

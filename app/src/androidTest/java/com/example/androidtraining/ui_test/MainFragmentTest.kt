@@ -14,9 +14,11 @@ import javax.inject.Inject
 @SdkSuppress(minSdkVersion = 18)
 class MainFragmentTest {
 
-    @Inject lateinit var mockWebServer: MockWebServer
+    @Inject
+    lateinit var mockWebServer: MockWebServer
 
-    @get:Rule val diGraph = DiGraphRule()
+    @get:Rule
+    val diGraph = DiGraphRule()
 
     @Before
     fun setup() {
@@ -26,7 +28,6 @@ class MainFragmentTest {
     @Test
     fun test_simpleTest() {
         mockWebServer.queue(200, "")
-
         Truth.assertThat("").isEqualTo("")
     }
 
