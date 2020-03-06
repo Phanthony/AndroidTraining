@@ -12,7 +12,6 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
 
-
 class TellerRepoOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     class GetReposRequirement(val dayInformation: Day): GetCacheRequirements{

@@ -9,12 +9,11 @@ interface JsonAdapter {
     fun <T: Any> toJson(data: T): String
 }
 
-class MoshiJsonAdapter @Inject constructor(): JsonAdapter {
-
-    val moshi = Moshi.Builder().build()
+@Suppress("UNCHECKED_CAST")
+class MoshiJsonAdapter @Inject constructor(val moshi: Moshi): JsonAdapter {
 
     override fun <T> fromJson(json: String, clazz: Class<T>): T {
-        val adapter = moshi.adapter<T>(clazz)
+        val adapter = moshi.adapter(clazz)
         return adapter.fromJson(json) as T
     }
 

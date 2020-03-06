@@ -62,10 +62,7 @@ class RetrofitService @Inject constructor(
         }
     }
 
-    override fun loginToGithub(
-        password: String,
-        username: String
-    ): Single<Result<GitHubLoginResult>> {
+    override fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>> {
         return devService.loginGithub(
             AuthMobileRequestBody(
                 listOf("repo"),
