@@ -20,9 +20,7 @@ class TestNetworkModules {
         return MockWebServer(
             okhttp3.mockwebserver.MockWebServer(),
             jsonAdapter
-        ).apply {
-            startServer()
-        }
+        )
     }
 
     @Singleton
