@@ -45,7 +45,7 @@ class IssuesFragment : Fragment() {
         issueAdapter =
             RecyclerViewIssueAdapter(
                 arrayListOf(),
-                activity!!
+                requireActivity()
             )
         super.onCreate(savedInstanceState)
     }
@@ -75,7 +75,7 @@ class IssuesFragment : Fragment() {
                     if (errorDuringFetch != null) {
                         informationToast.cancel()
                         issueSwipeRefresh.isRefreshing = false
-                        this@IssuesFragment.getErrorDialog(errorDuringFetch.message!!, this@IssuesFragment.context!!).show()
+                        this@IssuesFragment.getErrorDialog(errorDuringFetch.message!!, this@IssuesFragment.requireContext()).show()
                     }
                 }
                 whenCache { cache, lastSuccessfulFetch, isFetching, justSuccessfullyFetched, errorDuringFetch ->
@@ -83,7 +83,7 @@ class IssuesFragment : Fragment() {
                         lastTime = lastSuccessfulFetch.time
                         informationToast.cancel()
                         issueSwipeRefresh.isRefreshing = false
-                        this@IssuesFragment.getErrorDialog(errorDuringFetch.message!!, this@IssuesFragment.context!!).show()
+                        this@IssuesFragment.getErrorDialog(errorDuringFetch.message!!, this@IssuesFragment.requireContext()).show()
                     }
                     when (cache) {
                         null -> {
@@ -93,13 +93,13 @@ class IssuesFragment : Fragment() {
                         else -> {
                             nothingToShow.visibility = View.INVISIBLE
                             issueLayout.visibility = View.VISIBLE
-                            val nav = this@IssuesFragment.activity!!.findNavController(R.id.nav_host_fragment)
+                            val nav = this@IssuesFragment.requireActivity().findNavController(R.id.nav_host_fragment)
                             // update shown cache
                             lastTime = lastSuccessfulFetch.time
                             issueAdapter.clear()
                             val newList = cache.map { issue ->
                                 Pair(issue,View.OnClickListener{
-                                    val user = activity!!.getSharedPreferences("github", Context.MODE_PRIVATE).getString("user","null")
+                                    val user = requireActivity().getSharedPreferences("github", Context.MODE_PRIVATE).getString("user","null")
                                     gitHubViewModel.changeIssueComment(issue.number,issue.repository.getName(),user!!,issue.id)
                                     nav.navigate(R.id.issue_comment_dest)
                                 })

@@ -3,6 +3,8 @@ package com.example.androidtraining.ui_test.di_test
 import com.example.androidtraining.di.AndroidModules
 import com.example.androidtraining.di.AppGraph
 import com.example.androidtraining.di.ViewModelModule
+import com.example.androidtraining.ui_test.GitHubLoginFragmentTests
+import com.example.androidtraining.ui_test.IssueFragmentTests
 import com.example.androidtraining.ui_test.MainFragmentTest
 import com.example.androidtraining.ui_test.RepoFragmentTests
 import dagger.Component
@@ -13,4 +15,6 @@ import javax.inject.Singleton
 interface TestAppGraph : AppGraph {
     fun inject(mainFragmentTest: MainFragmentTest)
     fun inject(repoFragment: RepoFragmentTests)
+    fun inject(issueFragment: IssueFragmentTests)
+    fun inject(loginFragment: GitHubLoginFragmentTests)
 }

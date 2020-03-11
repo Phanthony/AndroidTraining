@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.swipeDown
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -22,6 +23,7 @@ import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.testing.extensions.initState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +32,8 @@ import javax.inject.Inject
 
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 18)
-class RepoFragmentTests {
+class RepoFragmentTests: ActivityTestsInterface() {
+
     @Inject
     lateinit var mockWebServer: MockWebServer
 
@@ -46,29 +49,183 @@ class RepoFragmentTests {
     @Before
     fun setup() {
         diGraph.graph.inject(this)
+        ActivityScenario.launch(MainActivity::class.java)
+    }
+
+    @After
+    fun close(){
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        vm.database.clearAllTables()
     }
 
     @Test
-    fun testDisplayRepos(){
+    fun testDisplayRepos() {
+        val mUser = GitHubUser(
+            "testUser",
+            "https://media.gettyimages.com/vectors/-vector-id140788495?s=2048x2048"
+        )
+        val mRepos = GitHubRepoList(
+            listOf(
+                GitHubRepo("test1", mUser, 50, "Test desc", 3),
+                GitHubRepo("test", mUser, 3, null, 1)
+            )
+        )
+        mockWebServer.queue(200, mRepos)
         val vm = viewModelFactory.create(GitHubViewModel::class.java)
-        OnlineRepository.Testing.initState(vm.repositoryIssue,vm.repositoryIssue.requirements!!){
-            cacheExistsDsl
-        }
-        OnlineRepository.Testing.initState(vm.repositoryRepo,vm.repositoryRepo.requirements!!){
-            cacheExistsDsl
-        }
-        ActivityScenario.launch(MainActivity::class.java)
-        val mUser = GitHubUser("https://media.gettyimages.com/vectors/-vector-id140788495?s=2048x2048","testUser")
-        val mRepos = GitHubRepoList(listOf(GitHubRepo("test1",mUser,50,"Test desc",3),
-            GitHubRepo("test",mUser,3,null,1)
-        ))
+        setTellerStateEmpty(vm)
+        onView(withId(R.id.RepoList)).perform(swipeDown())
         runBlocking {
-            mockWebServer.queue(200,mRepos)
-            onView(withId(R.id.RepoList)).perform(swipeDown())
-            delay(2000)
+            delay(200)
+        }
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(0, R.id.RepoNameAuthor)
+        ).check(matches(withText("testUser / test1")))
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(0, R.id.RepoDescription)
+        ).check(matches(withText("Test desc")))
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(1, R.id.RepoNameAuthor)
+        ).check(matches((withText("testUser / test"))))
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(1, R.id.RepoDescription)
+        ).check(matches(withText("No Description Available")))
+    }
+
+    @Test
+    fun testDisplayOldRepos(){
+        val mUser = GitHubUser(
+            "testUser",
+            "https://media.gettyimages.com/vectors/-vector-id140788495?s=2048x2048"
+        )
+        val mRepos = GitHubRepoList(
+            listOf(
+                GitHubRepo("test1", mUser, 50, "Test desc", 3),
+                GitHubRepo("test", mUser, 3, null, 1)
+            )
+        )
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm,repo = false)
+        OnlineRepository.Testing.initState(vm.repositoryRepo,vm.repositoryRepo.requirements!!){
+            cache(mRepos)
+        }
+        //ActivityScenario.launch(MainActivity::class.java)
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(0, R.id.RepoNameAuthor)
+        ).check(matches(withText("testUser / test1")))
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(0, R.id.RepoDescription)
+        ).check(matches(withText("Test desc")))
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(1, R.id.RepoNameAuthor)
+        ).check(matches((withText("testUser / test"))))
+        onView(
+            RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList)
+                .viewHolderViewAtPosition(1, R.id.RepoDescription)
+        ).check(matches(withText("No Description Available")))
+    }
+
+    @Test
+    fun testErrorPopsUpNoInternet(){
+        runBlocking {
+            // let the ui load
+            delay(250)
+        }
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm)
+        onView(withId(R.id.RepoList)).perform(swipeDown())
+        runBlocking {
+            delay(5050)
+        }
+        onView(withText("OK")).perform(click())
+    }
+
+    @Test
+    fun testAddMoreRepos(){
+        val mUser = GitHubUser(
+            "testUser",
+            "https://media.gettyimages.com/vectors/-vector-id140788495?s=2048x2048"
+        )
+        val mRepos = GitHubRepoList(
+            listOf(
+                GitHubRepo("test1", mUser, 50, "Test desc", 3),
+                GitHubRepo("test", mUser, 3, null, 1)
+            )
+        )
+        val newRepos = GitHubRepoList(listOf(GitHubRepo("test 3",mUser,80,"Test Description 3",9)))
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm,repo = false)
+        OnlineRepository.Testing.initState(vm.repositoryRepo,vm.repositoryRepo.requirements!!){
+            cache(mRepos)
+        }
+        mockWebServer.queue(200,newRepos)
+        //ActivityScenario.launch(MainActivity::class.java)
+        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoNameAuthor)).check(
+            matches(withText("testUser / test1")))
+        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoDescription)).check(
+            matches(withText("Test desc")))
+        onView(withId(R.id.RepoList)).perform(swipeDown())
+        runBlocking {
+            delay(100)
         }
         onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoNameAuthor)).check(
-            matches(withText("testUser"))
-        )
+            matches(withText("testUser / test 3")))
+        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoDescription)).check(
+            matches(withText("Test Description 3")))
+        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(1,R.id.RepoNameAuthor)).check(
+            matches(withText("testUser / test1")))
+        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(1,R.id.RepoDescription)).check(
+            matches(withText("Test desc")))
     }
+
+    fun serverExceptionErrorPopsUp(){
+        val mUser = GitHubUser(
+            "testUser",
+            "https://media.gettyimages.com/vectors/-vector-id140788495?s=2048x2048"
+        )
+        val mRepos = GitHubRepoList(
+            listOf(
+                GitHubRepo("test1", mUser, 50, "Test desc", 3),
+                GitHubRepo("test", mUser, 3, null, 1)
+            )
+        )
+        val newRepos = GitHubRepoList(listOf(GitHubRepo("test 3",mUser,80,"Test Description 3",9)))
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm,repo = false)
+        OnlineRepository.Testing.initState(vm.repositoryRepo,vm.repositoryRepo.requirements!!){
+            cache(mRepos)
+        }
+        mockWebServer.queue(510,newRepos)
+        onView(withId(R.id.RepoList)).perform(swipeDown())
+        // Ask Levi how to check text from dialog builder
+    }
+
+    fun extraErrorPopsUp(){
+        val mUser = GitHubUser(
+            "testUser",
+            "https://media.gettyimages.com/vectors/-vector-id140788495?s=2048x2048"
+        )
+        val mRepos = GitHubRepoList(
+            listOf(
+                GitHubRepo("test1", mUser, 50, "Test desc", 3),
+                GitHubRepo("test", mUser, 3, null, 1)
+            )
+        )
+        val newRepos = GitHubRepoList(listOf(GitHubRepo("test 3",mUser,80,"Test Description 3",9)))
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm,repo = false)
+        OnlineRepository.Testing.initState(vm.repositoryRepo,vm.repositoryRepo.requirements!!){
+            cache(mRepos)
+        }
+        mockWebServer.queue(430,newRepos)
+        onView(withId(R.id.RepoList)).perform(swipeDown())
+        // Ask Levi how to check text from dialog builder
+    }
+
 }

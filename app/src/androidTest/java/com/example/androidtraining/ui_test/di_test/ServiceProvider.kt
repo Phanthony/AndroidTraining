@@ -9,7 +9,9 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ServiceProvider @Inject constructor(val moshi: Moshi) {
 
     fun <T> get(endpoint: String, clazz: Class<T>, sharedPreferences: SharedPreferences? = null): T{
@@ -21,9 +23,9 @@ class ServiceProvider @Inject constructor(val moshi: Moshi) {
             if(sharedPreferences != null){
                 addNetworkInterceptor(AuthHeaderInterceptor(sharedPreferences))
             }
-        }.connectTimeout(2, TimeUnit.SECONDS) // For testing purposes
-            .readTimeout(2, TimeUnit.SECONDS) // For testing purposes
-            .writeTimeout(2, TimeUnit.SECONDS).build()
+        }.connectTimeout(5, TimeUnit.SECONDS) // For testing purposes
+            .readTimeout(5, TimeUnit.SECONDS) // For testing purposes
+            .writeTimeout(5, TimeUnit.SECONDS).build()
 
         return Retrofit.Builder()
             .client(client)

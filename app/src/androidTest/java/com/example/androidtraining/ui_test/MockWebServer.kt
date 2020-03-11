@@ -3,7 +3,6 @@ package com.example.androidtraining.ui_test
 import com.example.androidtraining.JsonAdapter
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,6 +11,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class MockWebServer @Inject constructor(private val mockWebServer: MockWebServer, private val jsonAdapter: JsonAdapter) {
+
+    fun startServer(){
+        mockWebServer.start()
+    }
 
     val url: String
         get() = mockWebServer.url("/").toString()
@@ -32,8 +35,7 @@ class MockWebServer @Inject constructor(private val mockWebServer: MockWebServer
     private fun <T: Any> queueResponse(statusCode: Int, data: T, headers: Map<String, String>? = null) {
         val body = jsonAdapter.toJson(data)
 
-        val mockResponse = MockResponse().setResponseCode(statusCode).setBody(body).throttleBody(1024,1,
-            TimeUnit.SECONDS)
+        val mockResponse = MockResponse().setResponseCode(statusCode).setBody(body)
 
         headers?.let { header ->
             header.forEach { (key, value) ->
