@@ -21,6 +21,7 @@ import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
+import com.example.androidtraining.extension.updateToolBarTitle
 import com.example.androidtraining.recyclerview.RecyclerViewIssueAdapter
 import com.example.androidtraining.service.GitHubIssue
 import com.levibostian.teller.cachestate.OnlineCacheState
@@ -50,6 +51,7 @@ class IssuesFragment : Fragment() {
         super.onCreate(savedInstanceState)
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        updateToolBarTitle("Issues")
         val view = inflater.inflate(R.layout.issue_fragment_layout,container,false)
 
         val issueList = view.findViewById<RecyclerView>(R.id.IssueList)

@@ -21,6 +21,7 @@ import com.example.androidtraining.R
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
+import com.example.androidtraining.extension.updateToolBarTitle
 import com.example.androidtraining.recyclerview.RecyclerViewRepoAdapter
 import com.levibostian.teller.cachestate.OnlineCacheState
 import kotlinx.coroutines.*
@@ -43,14 +44,14 @@ class RepoFragment : Fragment() {
         repoAdapter =
             RecyclerViewRepoAdapter(
                 arrayListOf(),
-                activity!!
+                requireActivity()
             )
         super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.repo_fragment_layout, container, false)
-
+        updateToolBarTitle("Trending Repos")
         val repoList = view.findViewById<RecyclerView>(R.id.RepoList)
         val informationToast = Toast.makeText(activity, getString(R.string.fetchRepos), Toast.LENGTH_SHORT)
 
@@ -75,7 +76,7 @@ class RepoFragment : Fragment() {
                     if (errorDuringFetch != null) {
                         informationToast.cancel()
                         repoSwipeRefresh.isRefreshing = false
-                        this@RepoFragment.getErrorDialog(errorDuringFetch.message!!, this@RepoFragment.context!!).show()
+                        this@RepoFragment.getErrorDialog(errorDuringFetch.message!!, this@RepoFragment.requireContext()).show()
                     }
                 }
                 whenCache { cache, lastSuccessfulFetch, isFetching, justSuccessfullyFetched, errorDuringFetch ->
@@ -83,7 +84,7 @@ class RepoFragment : Fragment() {
                         lastTime = lastSuccessfulFetch.time
                         informationToast.cancel()
                         repoSwipeRefresh.isRefreshing = false
-                        this@RepoFragment.getErrorDialog(errorDuringFetch.message!!, this@RepoFragment.context!!).show()
+                        this@RepoFragment.getErrorDialog(errorDuringFetch.message!!, this@RepoFragment.requireContext()).show()
                     }
                     when (cache) {
                         null -> {

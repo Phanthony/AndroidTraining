@@ -7,6 +7,7 @@ import com.example.androidtraining.Day
 import com.example.androidtraining.DayInformation
 import com.example.androidtraining.JsonAdapter
 import com.example.androidtraining.MoshiJsonAdapter
+import com.example.androidtraining.typeconverters.GitHubIssueListTypeConverter
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -22,7 +23,7 @@ class AndroidModules(private val application: Application){
 
     @Provides
     fun provideMoshi(): Moshi{
-        return Moshi.Builder().build()
+        return Moshi.Builder().add(GitHubIssueListTypeConverter()).build()
     }
 
     @Provides

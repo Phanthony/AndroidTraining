@@ -5,6 +5,7 @@ import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.database.GitHubRepoList
 import com.example.androidtraining.database.GitHubUser
 import com.example.androidtraining.service.GitHubIssue
+import com.example.androidtraining.service.GitHubIssueComment
 import com.example.androidtraining.service.GitHubLoginResponse
 import com.example.androidtraining.service.GitHubLoginResult
 import com.levibostian.teller.repository.OnlineRepository
@@ -18,28 +19,31 @@ open class ActivityTestsInterface {
         comment: Boolean = true
     ) {
         if (repo) {
-            OnlineRepository.Testing.initState(
-                vm.repositoryRepo,
-                vm.repositoryRepo.requirements!!
-            ) {
-                cache(GitHubRepoList(listOf()))
-            }
+            setTellerRepo(vm,GitHubRepoList(listOf()))
         }
         if (issue) {
-            OnlineRepository.Testing.initState(
-                vm.repositoryIssue,
-                vm.repositoryIssue.requirements!!
-            ) {
-                cache(listOf())
-            }
+            setTellerIssue(vm, listOf())
         }
         if (comment) {
-            OnlineRepository.Testing.initState(
-                vm.repositoryIssueComment,
-                vm.repositoryIssueComment.requirements!!
-            ) {
-                cache(listOf())
-            }
+            setTellerIssueComment(vm, listOf())
+        }
+    }
+
+    open fun setTellerIssue(vm: GitHubViewModel, list: List<GitHubIssue>) {
+        OnlineRepository.Testing.initState(vm.repositoryIssue,vm.repositoryIssue.requirements!!){
+            cache(list)
+        }
+    }
+
+    open fun setTellerRepo(vm: GitHubViewModel, list: GitHubRepoList) {
+        OnlineRepository.Testing.initState(vm.repositoryRepo,vm.repositoryRepo.requirements!!){
+            cache(list)
+        }
+    }
+
+    open fun setTellerIssueComment(vm: GitHubViewModel, list: List<GitHubIssueComment>) {
+        OnlineRepository.Testing.initState(vm.repositoryIssueComment,vm.repositoryIssueComment.requirements!!){
+            cache(list)
         }
     }
 
@@ -76,11 +80,17 @@ open class ActivityTestsInterface {
         return GitHubIssue(issueID, issueNum, issueState, issueTitle, user, comments, updated, repo)
     }
 
-    open fun testGitHubLoginResult(msg: String = "Test Message", response: GitHubLoginResponse = testGithubLoginResponse()): GitHubLoginResult{
-        return GitHubLoginResult(msg,response)
+    open fun testGitHubLoginResult(
+        msg: String = "Test Message",
+        response: GitHubLoginResponse = testGithubLoginResponse()
+    ): GitHubLoginResult {
+        return GitHubLoginResult(msg, response)
     }
 
-    open fun testGithubLoginResponse(acs_token: String = "Test Token", url: String = "Test Auth"): GitHubLoginResponse {
-        return GitHubLoginResponse(acs_token,url)
+    open fun testGithubLoginResponse(
+        acs_token: String = "Test Token",
+        url: String = "Test Auth"
+    ): GitHubLoginResponse {
+        return GitHubLoginResponse(acs_token, url)
     }
 }

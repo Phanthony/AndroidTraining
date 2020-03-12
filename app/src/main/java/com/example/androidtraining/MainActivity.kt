@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.androidtraining.extension.onCreateDiGraph
-import com.example.androidtraining.extension.updateToolBarText
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -17,10 +16,7 @@ class MainActivity : AppCompatActivity() {
         onCreateDiGraph()
         setContentView(R.layout.activity_main)
 
-        //set up ViewModel
-
         //Set up Toolbar
-        ToolBar.title = getString(R.string.trending)
         ToolBar.setTitleTextColor(android.graphics.Color.WHITE)
         setSupportActionBar(ToolBar)
 
@@ -40,17 +36,14 @@ class MainActivity : AppCompatActivity() {
                  R.id.login_dest -> {
                      if(sharedPreferences.contains("access_token")){
                          controller.navigate(R.id.issues_dest)
-                         updateToolBarText(getString(R.string.Issues))
                      }
                      else{
                          controller.navigate(R.id.login_dest)
-                         updateToolBarText(getString(R.string.Login))
                      }
                      true
                  }
                 else -> {
                     controller.navigate(item.itemId)
-                    updateToolBarText(getString(R.string.trending))
                     true
                 }
             }

@@ -19,7 +19,6 @@ class MoshiJsonAdapter @Inject constructor(val moshi: Moshi): JsonAdapter {
 
     override fun <T: Any> toJson(data: T): String {
         val jsonAdapter = moshi.adapter<T>(data::class.java)
-
         return jsonAdapter.toJson(data)
     }
 

@@ -19,6 +19,7 @@ import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
+import com.example.androidtraining.extension.updateToolBarTitle
 import com.example.androidtraining.recyclerview.RecyclerViewIssueCommentAdapter
 import com.example.androidtraining.service.GitHubIssueComment
 import com.levibostian.teller.cachestate.OnlineCacheState
@@ -38,12 +39,13 @@ class IssueCommentFragment: Fragment() {
         adapter =
             RecyclerViewIssueCommentAdapter(
                 arrayListOf(),
-                this.context!!
+                this.requireContext()
             )
         super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        updateToolBarTitle("Issue Comments")
         val view = inflater.inflate(R.layout.issuecomment_fragment_layout,container,false)
 
         val commentList = view.findViewById<RecyclerView>(R.id.IssueCommentList)
@@ -70,14 +72,14 @@ class IssueCommentFragment: Fragment() {
                     if (errorDuringFetch != null) {
                         informationToast.cancel()
                         swipeRefresh.isRefreshing = false
-                        this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.context!!).show()
+                        this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.requireContext()).show()
                     }
                 }
                 whenCache { cache, lastSuccessfulFetch, isFetching, justSuccessfullyFetched, errorDuringFetch ->
                     if (errorDuringFetch != null) {
                         informationToast.cancel()
                         swipeRefresh.isRefreshing = false
-                        this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.context!!).show()
+                        this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.requireContext()).show()
                     }
                     when(cache){
                         null ->{

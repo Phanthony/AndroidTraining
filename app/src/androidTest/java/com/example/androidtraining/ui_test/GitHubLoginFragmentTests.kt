@@ -15,7 +15,7 @@ import com.example.androidtraining.R
 import com.example.androidtraining.service.GitHubLoginResponse
 import com.example.androidtraining.service.GitHubLoginResult
 import com.example.androidtraining.ui_test.di_test.DiGraphRule
-import com.levibostian.recyclerviewmatcher.RecyclerViewMatcher
+import com.levibostian.recyclerviewmatcher.RecyclerViewMatcher.Companion.recyclerViewWithId
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.testing.extensions.initState
 import kotlinx.coroutines.delay
@@ -114,9 +114,9 @@ class GitHubLoginFragmentTests: ActivityTestsInterface() {
         runBlocking {
             delay(250)
         }
-        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.IssueList).viewHolderViewAtPosition(0,R.id.IssueTitle)).check(
+        onView(recyclerViewWithId(R.id.IssueList).viewHolderViewAtPosition(0,R.id.IssueTitle)).check(
             matches(withText("Test Issue Title")))
-        onView(RecyclerViewMatcher.recyclerViewWithId(R.id.IssueList).viewHolderViewAtPosition(0,R.id.IssueCommentNum)).check(
+        onView(recyclerViewWithId(R.id.IssueList).viewHolderViewAtPosition(0,R.id.IssueCommentNum)).check(
             matches(withText("1"))
         )
     }

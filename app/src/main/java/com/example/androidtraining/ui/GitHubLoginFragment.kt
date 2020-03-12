@@ -18,6 +18,7 @@ import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
 import com.example.androidtraining.extension.updateToolBarText
+import com.example.androidtraining.extension.updateToolBarTitle
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
@@ -38,6 +39,7 @@ class GitHubLoginFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        updateToolBarTitle("Login into GitHub")
         val view = inflater.inflate(R.layout.github_login_fragment_layout, container, false)
         val loginButton = view.findViewById<Button>(R.id.GitHubLoginButton)
 
