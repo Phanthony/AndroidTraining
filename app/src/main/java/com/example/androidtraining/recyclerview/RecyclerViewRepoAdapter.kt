@@ -33,18 +33,18 @@ class RecyclerViewRepoAdapter(private val repoList: ArrayList<GitHubRepo>,
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentRepo = repoList[position]
-        val textToBeRepoStars = when(currentRepo.getStargazers_count()){
-            1 -> context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","")
-            else ->  context.getString(R.string.dailyStars).format("${currentRepo.getStargazers_count()}","s")
+        val textToBeRepoStars = when(currentRepo.stargazers_count){
+            1 -> context.getString(R.string.dailyStars).format("${currentRepo.stargazers_count}","")
+            else ->  context.getString(R.string.dailyStars).format("${currentRepo.stargazers_count}","s")
         }
-        val textToBeRepoDesc = when(currentRepo.getDescription()){
+        val textToBeRepoDesc = when(currentRepo.description){
             null -> context.getString(R.string.noDescAvail)
-            else -> currentRepo.getDescription()
+            else -> currentRepo.description
         }
         holder.repoStars.text = textToBeRepoStars
-        holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.getOwner().login,currentRepo.getName())
+        holder.repoName.text = context.getString(R.string.authorAndRepoName).format(currentRepo.owner.login,currentRepo.name)
         holder.repoDesc.text = textToBeRepoDesc
-        Glide.with(context).load(currentRepo.getOwner().avatar_url).into(holder.repoImage)
+        Glide.with(context).load(currentRepo.owner.avatar_url).into(holder.repoImage)
     }
 
     fun clear(){

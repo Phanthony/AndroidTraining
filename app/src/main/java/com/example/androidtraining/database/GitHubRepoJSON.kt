@@ -4,24 +4,20 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 @Entity(tableName = "Repo_Table")
 data class GitHubRepo(
-    @ColumnInfo(name = "repoTitle") private var name: String,
-    @Embedded(prefix = "repo") private var owner: GitHubUser,
-    @ColumnInfo(name = "repoStarCount") private var stargazers_count: Int,
-    @ColumnInfo(name = "repoDescription") private var description: String?,
-    @PrimaryKey @ColumnInfo(name = "repoId") private var id: Int
-) {
-    fun getId() = id
-    fun getStargazers_count() = stargazers_count
-    fun getDescription() = description
-    fun getName() = name
-    fun getOwner() = owner
-}
+    @ColumnInfo(name = "repoTitle") val name: String,
+    @Embedded(prefix = "repo") val owner: GitHubUser,
+    @ColumnInfo(name = "repoStarCount") val stargazers_count: Int,
+    @ColumnInfo(name = "repoDescription") val description: String?,
+    @PrimaryKey @ColumnInfo(name = "repoId") val id: Int
+)
 
-
+@JsonClass(generateAdapter = true)
 data class GitHubRepoList(var items: List<GitHubRepo>)
 
-
+@JsonClass(generateAdapter = true)
 data class GitHubUser(var login: String, var avatar_url: String)

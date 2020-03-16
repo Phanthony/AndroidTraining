@@ -1,5 +1,6 @@
 package com.example.androidtraining
 
+import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -9,10 +10,12 @@ import javax.inject.Inject
 
 class DayInformation @Inject constructor() : Day {
     override fun getYesterday(): String {
-        return (DateTimeFormatter.ofPattern("yyyy-MM-dd")
-            .withLocale(Locale.US)
-            .withZone(ZoneId.systemDefault()))
-            .format(Instant.now().minus(Duration.ofDays(1)))
+        val yesterday = Calendar.getInstance().apply {
+            add(Calendar.DATE, -1)
+        }.time
+
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return format.format(yesterday)
     }
 }
 
