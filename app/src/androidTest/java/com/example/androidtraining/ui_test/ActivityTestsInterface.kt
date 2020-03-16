@@ -1,6 +1,8 @@
 package com.example.androidtraining.ui_test
 
+import androidx.test.core.app.ActivityScenario
 import com.example.androidtraining.GitHubViewModel
+import com.example.androidtraining.MainActivity
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.database.GitHubRepoList
 import com.example.androidtraining.database.GitHubUser
@@ -92,5 +94,9 @@ open class ActivityTestsInterface {
         url: String = "Test Auth"
     ): GitHubLoginResponse {
         return GitHubLoginResponse(acs_token, url)
+    }
+
+    open fun launchMainActivity(){
+        ActivityScenario.launch(MainActivity::class.java)
     }
 }

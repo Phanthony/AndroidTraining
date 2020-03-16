@@ -16,6 +16,7 @@ import com.example.androidtraining.service.GitHubLoginResult
 import com.example.androidtraining.service.Service
 import com.levibostian.teller.cachestate.OnlineCacheState
 import io.reactivex.BackpressureStrategy
+import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import javax.inject.Inject
@@ -51,10 +52,9 @@ class GitHubViewModel @Inject constructor(
         return fromPublisher(observable.toFlowable(BackpressureStrategy.LATEST))
     }
 
-    fun userRepoRefresh() {
-        repositoryRepo.refresh(true)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
+    fun userRepoRefresh(): Completable {
+        return repositoryRepo.refresh(true)
+            .observeOn(AndroidSchedulers.mainThread()).ignoreElement()
     }
 
     fun loginToGithub(password: String, username: String): Single<Result<GitHubLoginResult>> {

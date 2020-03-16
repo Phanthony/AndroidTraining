@@ -1,6 +1,7 @@
 package com.example.androidtraining.ui_test
 
 import android.content.SharedPreferences
+import androidx.arch.core.executor.testing.CountingTaskExecutorRule
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
@@ -33,6 +34,10 @@ import javax.inject.Inject
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 18)
 class RepoFragmentTests: ActivityTestsInterface() {
+
+    //runs everything on ui thread
+    //@get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
+    @get:Rule val countingTaskExecutorRule = CountingTaskExecutorRule()
 
     @Inject
     lateinit var mockWebServer: MockWebServer
@@ -141,12 +146,13 @@ class RepoFragmentTests: ActivityTestsInterface() {
         setTellerStateEmpty(vm)
         onView(withId(R.id.RepoList)).perform(swipeDown())
         runBlocking {
-            delay(5050)
+            delay(5150)
         }
         onView(withText("OK")).perform(click())
     }
 
     @Test
+    //Levi's test
     fun testAddMoreRepos(){
         val mUser = GitHubUser(
             "testUser",
@@ -165,15 +171,17 @@ class RepoFragmentTests: ActivityTestsInterface() {
             cache(mRepos)
         }
         mockWebServer.queue(200,newRepos)
-        //ActivityScenario.launch(MainActivity::class.java)
         onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoNameAuthor)).check(
             matches(withText("testUser / test1")))
         onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoDescription)).check(
             matches(withText("Test desc")))
         onView(withId(R.id.RepoList)).perform(swipeDown())
+        //countingTaskExecutorRule.drainTasks(1,TimeUnit.SECONDS)
+
         runBlocking {
-            delay(100)
+           delay(100)
         }
+
         onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoNameAuthor)).check(
             matches(withText("testUser / test 3")))
         onView(RecyclerViewMatcher.recyclerViewWithId(R.id.RepoList).viewHolderViewAtPosition(0,R.id.RepoDescription)).check(

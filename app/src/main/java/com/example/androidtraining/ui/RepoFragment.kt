@@ -24,6 +24,8 @@ import com.example.androidtraining.extension.onAttachDiGraph
 import com.example.androidtraining.extension.updateToolBarTitle
 import com.example.androidtraining.recyclerview.RecyclerViewRepoAdapter
 import com.levibostian.teller.cachestate.OnlineCacheState
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.addTo
 import kotlinx.coroutines.*
 import javax.inject.Inject
 
@@ -33,6 +35,7 @@ class RepoFragment : Fragment() {
     private var timeCycle = true
     lateinit var repoAdapter: RecyclerViewRepoAdapter
     lateinit var coTimer : CoroutineScope
+    val compositeDisposable = CompositeDisposable()
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
     override fun onAttach(context: Context) {
@@ -64,7 +67,7 @@ class RepoFragment : Fragment() {
 
         repoSwipeRefresh.setOnRefreshListener {
             informationToast.show()
-            gitHubViewModel.userRepoRefresh()
+            gitHubViewModel.userRepoRefresh().subscribe().addTo(compositeDisposable)
         }
 
         val repoLayout = view.findViewById<LinearLayout>(R.id.repoLayout)
@@ -140,6 +143,11 @@ class RepoFragment : Fragment() {
                 delay(1000)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.dispose()
     }
 
 }
