@@ -1,0 +1,206 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "73fbfbcc9d3f86a49af4bcce7dc95edb",
+    "entities": [
+      {
+        "tableName": "Repo_Table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`repoTitle` TEXT NOT NULL, `repoStarCount` INTEGER NOT NULL, `repoDescription` TEXT, `repoId` INTEGER NOT NULL, `repologin` TEXT NOT NULL, `repoavatar_url` TEXT NOT NULL, PRIMARY KEY(`repoId`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "repoTitle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stargazers_count",
+            "columnName": "repoStarCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "repoDescription",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "repoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "owner.login",
+            "columnName": "repologin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "owner.avatar_url",
+            "columnName": "repoavatar_url",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "repoId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Issue_Table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`issueId` INTEGER NOT NULL, `issueNumber` INTEGER NOT NULL, `issueState` TEXT NOT NULL, `issueTitle` TEXT NOT NULL, `issueComments` INTEGER NOT NULL, `issueLastUpdate` TEXT NOT NULL, `issueCreatedlogin` TEXT NOT NULL, `issueCreatedavatar_url` TEXT NOT NULL, `issueForrepoTitle` TEXT NOT NULL, `issueForrepoStarCount` INTEGER NOT NULL, `issueForrepoDescription` TEXT, `issueForrepoId` INTEGER NOT NULL, `issueForrepologin` TEXT NOT NULL, `issueForrepoavatar_url` TEXT NOT NULL, PRIMARY KEY(`issueId`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "issueId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "number",
+            "columnName": "issueNumber",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "issueState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "issueTitle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "comments",
+            "columnName": "issueComments",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updated_at",
+            "columnName": "issueLastUpdate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "user.login",
+            "columnName": "issueCreatedlogin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "user.avatar_url",
+            "columnName": "issueCreatedavatar_url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repository.name",
+            "columnName": "issueForrepoTitle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repository.stargazers_count",
+            "columnName": "issueForrepoStarCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repository.description",
+            "columnName": "issueForrepoDescription",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repository.id",
+            "columnName": "issueForrepoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repository.owner.login",
+            "columnName": "issueForrepologin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repository.owner.avatar_url",
+            "columnName": "issueForrepoavatar_url",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "issueId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Issue_Comment_Table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`commentId` INTEGER NOT NULL, `commentBody` TEXT NOT NULL, `issueId` INTEGER, `commentlogin` TEXT NOT NULL, `commentavatar_url` TEXT NOT NULL, PRIMARY KEY(`commentId`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "commentId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "commentBody",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "issueId",
+            "columnName": "issueId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "user.login",
+            "columnName": "commentlogin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "user.avatar_url",
+            "columnName": "commentavatar_url",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "commentId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '73fbfbcc9d3f86a49af4bcce7dc95edb')"
+    ]
+  }
+}

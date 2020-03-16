@@ -6,7 +6,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.database.GitHubUser
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 @Entity(tableName = "Issue_Table")
 data class GitHubIssue(
     @PrimaryKey @ColumnInfo(name = "issueId") val id: Int,

@@ -100,7 +100,7 @@ class IssueFragmentTests : ActivityTestsInterface() {
             )
         )
         mockWebServer.queue(
-            200, listOf(testRepoIssue(issueID = 2, issueTitle = "Test Issue 2", comments = 4))
+            200, arrayOf(testRepoIssue(issueID = 2, issueTitle = "Test Issue 2", comments = 4))
         )
         ActivityScenario.launch(MainActivity::class.java)
         onView(withId(R.id.login_dest)).perform(click())

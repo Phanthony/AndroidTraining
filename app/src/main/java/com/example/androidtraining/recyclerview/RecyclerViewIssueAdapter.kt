@@ -37,7 +37,7 @@ class RecyclerViewIssueAdapter(private val issueList: ArrayList<Pair<GitHubIssue
             isSelected = true
         }
         holder.issueDesc.apply {
-            text = context.getString(R.string.issueDesc).format(currentIssue.user.login,currentIssue.repository.getName())
+            text = context.getString(R.string.issueDesc).format(currentIssue.user.login,currentIssue.repository.name)
             isSelected = true
         }
         holder.issueLayout.setOnClickListener(issueList[position].second)

@@ -102,7 +102,7 @@ class IssuesFragment : Fragment() {
                             val newList = cache.map { issue ->
                                 Pair(issue,View.OnClickListener{
                                     val user = requireActivity().getSharedPreferences("github", Context.MODE_PRIVATE).getString("user","null")
-                                    gitHubViewModel.changeIssueComment(issue.number,issue.repository.getName(),user!!,issue.id)
+                                    gitHubViewModel.changeIssueComment(issue.number,issue.repository.name,user!!,issue.id)
                                     nav.navigate(R.id.issue_comment_dest)
                                 })
                             }
