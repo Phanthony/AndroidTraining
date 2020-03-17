@@ -75,7 +75,6 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
     ): Observable<PagedList<GitHubIssueComment>> {
         return db.gitHubIssueCommentDAO().getAllComments(requirements.issueID)
             .toObservable(PAGE_SIZE, boundaryCallback = PagedListBoundaryCallback())
-            .subscribeOn(Schedulers.io())
     }
 
     override fun saveCache(

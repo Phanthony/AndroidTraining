@@ -85,7 +85,7 @@ class GitHubLoginFragmentTests: ActivityTestsInterface() {
         setTellerStateEmpty(vm)
         ActivityScenario.launch(MainActivity::class.java)
         onView(withId(R.id.login_dest)).perform(click())
-        mockWebServer.queue(401,GitHubLoginResult("Error User Entered Bad Data", GitHubLoginResponse("","")))
+        mockWebServer.queue(401,GitHubLoginResult("Sorry! The username or password is incorrect.", GitHubLoginResponse("","")))
         val user = onView(withId(R.id.GitHubLoginUsernameText))
         val pass = onView(withId(R.id.GitHubLoginPasswordText))
         user.perform(typeText("testUserName"))
@@ -93,7 +93,45 @@ class GitHubLoginFragmentTests: ActivityTestsInterface() {
         pass.perform(typeText("testPassword"))
         closeSoftKeyboard()
         onView(withId(R.id.GitHubLoginButton)).perform(click())
-        //Ask Levi about Dialog builder
+        runBlocking { delay(100) }
+        onView(withText("Sorry! The username or password is incorrect.")).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun testExtraError(){
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm)
+        ActivityScenario.launch(MainActivity::class.java)
+        onView(withId(R.id.login_dest)).perform(click())
+        mockWebServer.queue(403,GitHubLoginResult("Error User Entered Bad Data", GitHubLoginResponse("","")))
+        val user = onView(withId(R.id.GitHubLoginUsernameText))
+        val pass = onView(withId(R.id.GitHubLoginPasswordText))
+        user.perform(typeText("testUserName"))
+        closeSoftKeyboard()
+        pass.perform(typeText("testPassword"))
+        closeSoftKeyboard()
+        onView(withId(R.id.GitHubLoginButton)).perform(click())
+        runBlocking { delay(100) }
+        onView(withText("Sorry! There seems to be an issue. The team has been notified. Try again later.")).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun testError500_600error(){
+        val vm = viewModelFactory.create(GitHubViewModel::class.java)
+        setTellerStateEmpty(vm)
+        launchMainActivity()
+        onView(withId(R.id.login_dest)).perform(click())
+        mockWebServer.queue(521,GitHubLoginResult("error", GitHubLoginResponse("","")))
+        val user = onView(withId(R.id.GitHubLoginUsernameText))
+        val pass = onView(withId(R.id.GitHubLoginPasswordText))
+        user.perform(typeText("testUserName"))
+        closeSoftKeyboard()
+        pass.perform(typeText("testPassword"))
+        closeSoftKeyboard()
+        onView(withId(R.id.GitHubLoginButton)).perform(click())
+        runBlocking { delay(100) }
+        onView(withText("Sorry! There seems to be an error with the system. The team has been notified. Try again later.")).check(
+            matches(isDisplayed()))
     }
 
     @Test

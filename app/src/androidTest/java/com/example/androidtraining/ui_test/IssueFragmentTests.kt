@@ -6,8 +6,7 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.swipeDown
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.espresso.matcher.ViewMatchers.*
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.ui_test.di_test.DiGraphRule
@@ -148,10 +147,10 @@ class IssueFragmentTests : ActivityTestsInterface() {
         launchMainActivity()
         mockWebServer.queue(200, arrayOf(testRepoIssue()))
         goToIssueFrag()
+        onView(withId(R.id.IssueList)).check(matches(isDisplayed()))
         onView(withId(R.id.IssueList)).perform(swipeDown())
         runBlocking { delay(250) }
         onView(recyclerViewWithId(R.id.IssueList).viewHolderViewAtPosition(0,R.id.IssueTitle)).check(
             matches(withText("Test Issue Title")))
-        //onView(recyclerViewWithId(R.id.))
     }
 }

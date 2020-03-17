@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -21,8 +20,6 @@ import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
 import com.example.androidtraining.extension.updateToolBarTitle
 import com.example.androidtraining.recyclerview.RecyclerViewIssueCommentAdapter
-import com.example.androidtraining.service.GitHubIssueComment
-import com.levibostian.teller.cachestate.OnlineCacheState
 import javax.inject.Inject
 
 class IssueCommentFragment: Fragment() {
@@ -38,7 +35,6 @@ class IssueCommentFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         adapter =
             RecyclerViewIssueCommentAdapter(
-                arrayListOf(),
                 this.requireContext()
             )
         super.onCreate(savedInstanceState)
@@ -66,7 +62,7 @@ class IssueCommentFragment: Fragment() {
         val commentLayout = view.findViewById<LinearLayout>(R.id.issueCommentLayout)
         val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
 
-        gitHubViewModel.getIssueCommentObservable().observe(this.viewLifecycleOwner, Observer<OnlineCacheState<PagedList<GitHubIssueComment>>> { cacheStatus ->
+        gitHubViewModel.getIssueCommentObservable().observe(this.viewLifecycleOwner, Observer { cacheStatus ->
             cacheStatus.apply {
                 whenNoCache { isFetching, errorDuringFetch ->
                     if (errorDuringFetch != null) {
@@ -80,19 +76,28 @@ class IssueCommentFragment: Fragment() {
                         informationToast.cancel()
                         swipeRefresh.isRefreshing = false
                         this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.requireContext()).show()
+                        return@whenCache
                     }
-                    when(cache){
-                        null ->{
-                            nothingToShow.visibility = View.VISIBLE
-                            commentLayout.visibility = View.INVISIBLE
-                        }
-                        else ->{
-                            nothingToShow.visibility = View.INVISIBLE
-                            commentLayout.visibility = View.VISIBLE
-                            adapter.clear()
-                            adapter.addAll(cache)
+                    if(!isFetching) {
+                        when (cache) {
+                            null -> {
+                                nothingToShow.visibility = View.VISIBLE
+                                commentLayout.visibility = View.INVISIBLE
+                                informationToast.cancel()
+                                swipeRefresh.isRefreshing = false
+                            }
+                            else -> {
+                                nothingToShow.visibility = View.INVISIBLE
+                                commentLayout.visibility = View.VISIBLE
+                                adapter.submitList(cache)
+                                //adapter.clear()
+                                //adapter.addAll(cache)
+                                informationToast.cancel()
+                                swipeRefresh.isRefreshing = false
+                            }
                         }
                     }
+                    /*
                     if (justSuccessfullyFetched) {
                         if (cacheExistsAndEmpty){
                             nothingToShow.visibility = View.VISIBLE
@@ -101,11 +106,10 @@ class IssueCommentFragment: Fragment() {
                         informationToast.cancel()
                         swipeRefresh.isRefreshing = false
                     }
+                     */
                 }
             }
         })
-
-        //Set up runnable for the refresh time.
         return view
     }
 }

@@ -1,6 +1,6 @@
 package com.example.androidtraining
 
-import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
@@ -8,12 +8,16 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.androidtraining.extension.onCreateDiGraph
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.android.synthetic.main.activity_main.*
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        onCreateDiGraph()
+        onCreateDiGraph().inject(this)
         setContentView(R.layout.activity_main)
 
         //Set up Toolbar
@@ -29,7 +33,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNav(controller : NavController){
-        val sharedPreferences = getSharedPreferences("github", Context.MODE_PRIVATE)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
         bottomNav.setOnNavigationItemSelectedListener {
             item -> when(item.itemId){

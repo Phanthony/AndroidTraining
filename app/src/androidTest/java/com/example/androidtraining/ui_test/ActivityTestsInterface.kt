@@ -6,6 +6,7 @@ import com.example.androidtraining.MainActivity
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.database.GitHubRepoList
 import com.example.androidtraining.database.GitHubUser
+import com.example.androidtraining.database.teller.TellerIssueCommentsOnlineRepository
 import com.example.androidtraining.service.GitHubIssue
 import com.example.androidtraining.service.GitHubIssueComment
 import com.example.androidtraining.service.GitHubLoginResponse
@@ -47,6 +48,14 @@ open class ActivityTestsInterface {
         OnlineRepository.Testing.initState(vm.repositoryIssueComment,vm.repositoryIssueComment.requirements!!){
             cache(list)
         }
+    }
+
+    open fun setTellerIssueCommentReq(vm: GitHubViewModel, requirements: TellerIssueCommentsOnlineRepository.GetCommentRequirement = testIssueCommentRequirements()){
+        vm.repositoryIssueComment.requirements = requirements
+    }
+
+    open fun testIssueCommentRequirements(issueNum: Int = 1, issueName: String = "Test Issue Title", user: String = "TestUser", issueId: Int = 1): TellerIssueCommentsOnlineRepository.GetCommentRequirement{
+        return TellerIssueCommentsOnlineRepository.GetCommentRequirement(issueNum,issueName,user,issueId)
     }
 
     open fun testGitHubUser(login: String = "TestUser"): GitHubUser {
@@ -94,6 +103,15 @@ open class ActivityTestsInterface {
         url: String = "Test Auth"
     ): GitHubLoginResponse {
         return GitHubLoginResponse(acs_token, url)
+    }
+
+    open fun testGithubIssueComment(
+        commentId: Int = 1,
+        user: GitHubUser = testGitHubUser(),
+        body: String = "Test Comment Body",
+        issueId: Int = 1
+    ): GitHubIssueComment {
+        return GitHubIssueComment(commentId,user,body,issueId)
     }
 
     open fun launchMainActivity(){

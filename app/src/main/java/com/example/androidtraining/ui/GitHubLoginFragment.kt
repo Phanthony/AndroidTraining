@@ -3,7 +3,6 @@ package com.example.androidtraining.ui
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,15 +16,17 @@ import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
 import com.example.androidtraining.extension.getErrorDialog
 import com.example.androidtraining.extension.onAttachDiGraph
-import com.example.androidtraining.extension.updateToolBarText
 import com.example.androidtraining.extension.updateToolBarTitle
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class GitHubLoginFragment : Fragment() {
 
+    @Inject
     lateinit var sharedPreferences: SharedPreferences
+
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
@@ -45,7 +46,6 @@ class GitHubLoginFragment : Fragment() {
 
         val gitHubViewModel by viewModels<GitHubViewModel> { viewModelFactory }
 
-        sharedPreferences = requireActivity().getSharedPreferences("github", Context.MODE_PRIVATE)
         val username = view.findViewById<EditText>(R.id.GitHubLoginUsernameText)
         val password = view.findViewById<EditText>(R.id.GitHubLoginPasswordText)
 
@@ -65,36 +65,24 @@ class GitHubLoginFragment : Fragment() {
 
             gitHubViewModel.loginToGithub(checkPassword, checkUsername)
                 .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy {
                     if (it.isFailure) {
-
-                        Log.i("fail", it.exceptionOrNull()!!.message)
-                        this@GitHubLoginFragment.requireActivity().runOnUiThread {
-                            getErrorDialog(
-                                it.exceptionOrNull()!!.message!!,
-                                this@GitHubLoginFragment.requireContext()
-                            ).show()
-                        }
+                        this@GitHubLoginFragment.requireActivity()
+                        getErrorDialog(
+                            it.exceptionOrNull()!!.message!!,
+                            this@GitHubLoginFragment.requireContext()
+                        ).show()
                     } else {
-                        Log.i("succ", it.getOrNull()?.toString())
                         val accessToken = it.getOrNull()!!.response.access_token
                         sharedPreferences.edit().putString("user", checkUsername).apply()
                         sharedPreferences.edit().putString("access_token", accessToken).apply()
-                        sharedPreferences.edit()
-                            .putString("auth_url", it.getOrNull()!!.response.auth_url).apply()
+                        sharedPreferences.edit().putString("auth_url", it.getOrNull()!!.response.auth_url).apply()
                         gitHubViewModel.changeIssueUser(checkUsername)
                         val nav = requireActivity().findNavController(R.id.nav_host_fragment)
-                        requireActivity().runOnUiThread {
-                            requireActivity().updateToolBarText(
-                                requireContext().getString(
-                                    R.string.Issues
-                                )
-                            )
-                        }
                         nav.navigate(R.id.issues_dest)
                     }
                 }
-
         }
         return view
     }

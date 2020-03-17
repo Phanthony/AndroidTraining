@@ -2,7 +2,6 @@ package com.example.androidtraining.di
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import com.example.androidtraining.Day
 import com.example.androidtraining.DayInformation
 import com.example.androidtraining.JsonAdapter
@@ -40,10 +39,5 @@ class AndroidModules(private val application: Application){
     @Provides
     fun provideApplication(): Application{
         return application
-    }
-
-    @Provides
-    fun provideSharedPrefs(context: Context): SharedPreferences{
-        return context.getSharedPreferences("github",Context.MODE_PRIVATE)
     }
 }

@@ -1,6 +1,7 @@
 package com.example.androidtraining.ui
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.LayoutInflater
@@ -36,6 +37,8 @@ class IssuesFragment : Fragment() {
     lateinit var issueAdapter : RecyclerViewIssueAdapter
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -101,7 +104,7 @@ class IssuesFragment : Fragment() {
                             issueAdapter.clear()
                             val newList = cache.map { issue ->
                                 Pair(issue,View.OnClickListener{
-                                    val user = requireActivity().getSharedPreferences("github", Context.MODE_PRIVATE).getString("user","null")
+                                    val user = sharedPreferences.getString("user","null")
                                     gitHubViewModel.changeIssueComment(issue.number,issue.repository.name,user!!,issue.id)
                                     nav.navigate(R.id.issue_comment_dest)
                                 })
