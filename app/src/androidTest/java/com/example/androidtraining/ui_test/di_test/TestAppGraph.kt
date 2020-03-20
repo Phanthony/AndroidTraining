@@ -15,4 +15,5 @@ interface TestAppGraph : AppGraph {
     fun inject(issueFragment: IssueFragmentTests)
     fun inject(loginFragment: GitHubLoginFragmentTests)
     fun inject(commentFragment: IssueCommentFragmentTests)
+    fun inject(navigation: NavigationTests)
 }
