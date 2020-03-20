@@ -4,12 +4,10 @@ import com.example.androidtraining.JsonAdapter
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Wrapper around OkHttp [MockWebServer] to give an api that is consistent no matter the networking library used.
  */
-@Singleton
 class MockWebServer @Inject constructor(private val mockWebServer: MockWebServer, private val jsonAdapter: JsonAdapter) {
 
     fun startServer(){

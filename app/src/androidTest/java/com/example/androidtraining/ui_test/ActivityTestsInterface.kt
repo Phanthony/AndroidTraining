@@ -54,7 +54,7 @@ open class ActivityTestsInterface {
         vm.repositoryIssueComment.requirements = requirements
     }
 
-    open fun testIssueCommentRequirements(issueNum: Int = 1, issueName: String = "Test Issue Title", user: String = "TestUser", issueId: Int = 1): TellerIssueCommentsOnlineRepository.GetCommentRequirement{
+    open fun testIssueCommentRequirements(issueNum: Int = 1, issueName: String = "Test Repo", user: String = "TestUser", issueId: Int = 1): TellerIssueCommentsOnlineRepository.GetCommentRequirement{
         return TellerIssueCommentsOnlineRepository.GetCommentRequirement(issueNum,issueName,user,issueId)
     }
 

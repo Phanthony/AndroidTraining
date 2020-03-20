@@ -23,7 +23,7 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
         private const val PAGE_SIZE = 30
     }
 
-    private var morePagesDataToLoad = true
+    private var morePagesDataToLoad = false
 
     override fun deleteOldCache(requirements: GetCommentRequirement, persistFirstPage: Boolean): Completable {
         return Completable.fromCallable {
@@ -47,7 +47,7 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
         requirements: GetCommentRequirement,
         pagingRequirements: PagingRequirements
     ): Single<FetchResponse<List<GitHubIssueComment>>> {
-        return service.getIssueComments(requirements.issueNumber,requirements.issueName,requirements.user,requirements.issueID)
+        return service.getIssueComments(requirements.issueNumber,requirements.repoName,requirements.user,requirements.issueID)
             .map {
                 val fetchResponse: FetchResponse<List<GitHubIssueComment>> = if (it.result.isFailure) {
                     FetchResponse.fail(it.result.exceptionOrNull()!!)
@@ -107,8 +107,8 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
 
     override var maxAgeOfCache: Age = Age(7, Age.Unit.DAYS)
 
-    class GetCommentRequirement(var issueNumber: Int, var issueName: String, var user: String, var issueID: Int) : GetCacheRequirements {
-        override var tag: GetCacheRequirementsTag = "Comments for Issue $issueName #$issueNumber, by $user"
+    class GetCommentRequirement(var issueNumber: Int, var repoName: String, var user: String, var issueID: Int) : GetCacheRequirements {
+        override var tag: GetCacheRequirementsTag = "Comments for Issue $repoName #$issueNumber, by $user"
     }
 
 

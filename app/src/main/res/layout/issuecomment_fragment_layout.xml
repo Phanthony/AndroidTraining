@@ -1,33 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<FrameLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/issueCommentLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <include layout="@layout/nothing_to_show"/>
-
-    <LinearLayout
-            android:id="@+id/issueCommentLayout"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/IssueCommentRecycleViewSwipeRefresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-    >
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/IssueCommentRecycleViewSwipeRefresh"
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:layout_weight="1.0"
+            android:background="@android:color/transparent">
+
+        <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_gravity="center"
-                android:layout_weight="1.0"
-                android:background="@android:color/transparent"
-        >
+                android:layout_height="match_parent">
             <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/IssueCommentList"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-            />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                    android:layout_height="match_parent"/>
+        <include layout="@layout/nothing_to_show"/>
 
-    </LinearLayout>
-</FrameLayout>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</LinearLayout>

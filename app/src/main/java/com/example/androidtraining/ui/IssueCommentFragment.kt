@@ -59,7 +59,7 @@ class IssueCommentFragment: Fragment() {
             gitHubViewModel.userCommentsRefresh()
         }
 
-        val commentLayout = view.findViewById<LinearLayout>(R.id.issueCommentLayout)
+        val commentLayout = view.findViewById<RecyclerView>(R.id.IssueCommentList)
         val nothingToShow = view.findViewById<LinearLayout>(R.id.nothing_to_show)
 
         gitHubViewModel.getIssueCommentObservable().observe(this.viewLifecycleOwner, Observer { cacheStatus ->
@@ -68,6 +68,8 @@ class IssueCommentFragment: Fragment() {
                     if (errorDuringFetch != null) {
                         informationToast.cancel()
                         swipeRefresh.isRefreshing = false
+                        nothingToShow.visibility = View.VISIBLE
+                        commentLayout.visibility = View.INVISIBLE
                         this@IssueCommentFragment.getErrorDialog(errorDuringFetch.message!!, this@IssueCommentFragment.requireContext()).show()
                     }
                 }
@@ -90,8 +92,6 @@ class IssueCommentFragment: Fragment() {
                                 nothingToShow.visibility = View.INVISIBLE
                                 commentLayout.visibility = View.VISIBLE
                                 adapter.submitList(cache)
-                                //adapter.clear()
-                                //adapter.addAll(cache)
                                 informationToast.cancel()
                                 swipeRefresh.isRefreshing = false
                             }

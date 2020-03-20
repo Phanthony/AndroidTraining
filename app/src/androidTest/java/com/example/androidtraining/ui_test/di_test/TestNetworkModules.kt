@@ -14,8 +14,8 @@ import javax.inject.Singleton
 @Module
 class TestNetworkModules {
 
-    @Provides
     @Singleton
+    @Provides
     fun provideMockWebserver(jsonAdapter: JsonAdapter): MockWebServer {
         return MockWebServer(
             okhttp3.mockwebserver.MockWebServer(),
