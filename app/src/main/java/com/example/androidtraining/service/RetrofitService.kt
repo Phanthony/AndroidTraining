@@ -57,7 +57,6 @@ class RetrofitService @Inject constructor(
             } else {
                 Result.success(processedResponse.body!!)
             }
-
             kotlinResult
         }
     }
@@ -86,7 +85,6 @@ class RetrofitService @Inject constructor(
             } else {
                 Result.success(processedResponse.body!!)
             }
-
             kotlinResult
         }
     }

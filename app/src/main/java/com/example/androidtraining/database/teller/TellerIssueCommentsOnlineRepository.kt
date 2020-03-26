@@ -108,7 +108,7 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
     override var maxAgeOfCache: Age = Age(7, Age.Unit.DAYS)
 
     class GetCommentRequirement(var issueNumber: Int, var repoName: String, var user: String, var issueID: Int) : GetCacheRequirements {
-        override var tag: GetCacheRequirementsTag = "Comments for Issue $repoName #$issueNumber, by $user"
+        override var tag: GetCacheRequirementsTag = "Comments for Repo: $repoName, Issue#$issueNumber, by $user"
     }
 
 

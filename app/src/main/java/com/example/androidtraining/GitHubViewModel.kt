@@ -88,10 +88,10 @@ class GitHubViewModel @Inject constructor(
         repositoryIssue.requirements = newReq
     }
 
-    fun changeIssueComment(issueNumber: Int, issueName: String, user: String, issueId: Int) {
+    fun changeIssueComment(issueNumber: Int, repoName: String, user: String, issueId: Int) {
         val newRequirements = TellerIssueCommentsOnlineRepository.GetCommentRequirement(
             issueNumber,
-            issueName,
+            repoName,
             user,
             issueId
         )
