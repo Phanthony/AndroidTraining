@@ -18,7 +18,7 @@ import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
-class ViewModelTests {
+class GitHubViewModelTests {
 
     @Mock
     lateinit var mApplication: Application
