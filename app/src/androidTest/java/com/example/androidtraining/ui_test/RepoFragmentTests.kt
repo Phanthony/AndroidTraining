@@ -15,7 +15,7 @@ import com.example.androidtraining.R
 import com.example.androidtraining.database.GitHubRepo
 import com.example.androidtraining.database.GitHubRepoList
 import com.example.androidtraining.database.GitHubUser
-import com.example.androidtraining.ui_test.di_test.DiGraphRule
+import com.example.androidtraining.di_test.DiGraphRule
 import com.levibostian.recyclerviewmatcher.RecyclerViewMatcher
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.testing.extensions.initState

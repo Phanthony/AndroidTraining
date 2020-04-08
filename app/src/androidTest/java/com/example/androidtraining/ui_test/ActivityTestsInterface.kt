@@ -117,4 +117,25 @@ open class ActivityTestsInterface {
     open fun launchMainActivity(){
         ActivityScenario.launch(MainActivity::class.java)
     }
+
+    open fun createCommentList(size: Int, issueId: Int = 1): MutableList<GitHubIssueComment>{
+        val user = testGitHubUser()
+        val list = mutableListOf<GitHubIssueComment>()
+        for(i in 0 until size){
+            val testComment = GitHubIssueComment(i,user,"TestMsg",issueId)
+            list.add(testComment)
+        }
+        return list
+    }
+
+    open fun createIssueList(size: Int, issueId :Int = 1): MutableList<GitHubIssue>{
+        val user = testGitHubUser()
+        val repo = testGitHubRepo(user = user)
+        val list = mutableListOf<GitHubIssue>()
+        for(i in 0 until size){
+            val testIssue = GitHubIssue(i,1,"open","TestIssue",user,1,"",repo)
+            list.add(testIssue)
+        }
+        return list
+    }
 }

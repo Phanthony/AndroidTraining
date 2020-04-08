@@ -9,7 +9,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.R
-import com.example.androidtraining.ui_test.di_test.DiGraphRule
+import com.example.androidtraining.di_test.DiGraphRule
 import com.levibostian.recyclerviewmatcher.RecyclerViewMatcher.Companion.recyclerViewWithId
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

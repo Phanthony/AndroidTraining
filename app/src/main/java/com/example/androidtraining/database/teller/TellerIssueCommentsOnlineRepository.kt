@@ -13,7 +13,9 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service) :
     OnlinePagingRepository<PagedList<GitHubIssueComment>, TellerIssueCommentsOnlineRepository.PagingRequirements, TellerIssueCommentsOnlineRepository.GetCommentRequirement, List<GitHubIssueComment>>(
         PagingRequirements()
@@ -23,13 +25,14 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
         private const val PAGE_SIZE = 30
     }
 
-    private var morePagesDataToLoad = false
+    var morePagesDataToLoad = false
 
-    override fun deleteOldCache(requirements: GetCommentRequirement, persistFirstPage: Boolean): Completable {
+    public override fun deleteOldCache(requirements: GetCommentRequirement, persistFirstPage: Boolean): Completable {
+        val dao = db.gitHubIssueCommentDAO()
         return Completable.fromCallable {
-            db.gitHubIssueCommentDAO().getComment(requirements.issueID).let {
+            dao.getComment(requirements.issueID).let {
                 val commentsToDelete: List<GitHubIssueComment>? = when {
-                    (persistFirstPage && it.size < 30) -> null
+                    (persistFirstPage && it.size <= 30) -> null
                     persistFirstPage -> it.subList(PAGE_SIZE, it.size)
                     else -> it
                 }
@@ -74,10 +77,10 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
         pagingRequirements: PagingRequirements
     ): Observable<PagedList<GitHubIssueComment>> {
         return db.gitHubIssueCommentDAO().getAllComments(requirements.issueID)
-            .toObservable(PAGE_SIZE, boundaryCallback = PagedListBoundaryCallback())
+            .toObservable(PAGE_SIZE, boundaryCallback = PagedListBoundaryCallback()).subscribeOn(Schedulers.io())
     }
 
-    override fun saveCache(
+    public override fun saveCache(
         cache: List<GitHubIssueComment>,
         requirements: GetCommentRequirement,
         pagingRequirements: PagingRequirements
@@ -87,7 +90,7 @@ class TellerIssueCommentsOnlineRepository @Inject constructor(private val db: Gi
         }
     }
 
-    private fun goToNextPage() {
+    fun goToNextPage() {
         if (morePagesDataToLoad) {
             val currentPage = pagingRequirements.pageNumber
             pagingRequirements =

@@ -1,4 +1,4 @@
-package com.example.androidtraining.ui_test.di_test
+package com.example.androidtraining.di_test
 
 import com.example.androidtraining.JsonAdapter
 import com.example.androidtraining.service.*

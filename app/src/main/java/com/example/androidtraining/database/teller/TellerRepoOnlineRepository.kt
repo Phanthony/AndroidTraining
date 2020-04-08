@@ -11,7 +11,9 @@ import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TellerRepoOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubRepo>, TellerRepoOnlineRepository.GetReposRequirement, GitHubRepoList>() {
 
     class GetReposRequirement(val dayInformation: Day): GetCacheRequirements{
@@ -41,7 +43,7 @@ class TellerRepoOnlineRepository @Inject constructor(private val db: GitHubDataB
         return db.gitHubRepoDAO().getAllRepos()
     }
 
-    override fun saveCache(cache: GitHubRepoList, requirements: GetReposRequirement) {
+    public override fun saveCache(cache: GitHubRepoList, requirements: GetReposRequirement) {
         for (repos in cache.items){
             db.gitHubRepoDAO().insertRepo(repos)
         }

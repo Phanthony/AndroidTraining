@@ -9,7 +9,9 @@ import com.levibostian.teller.type.Age
 import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TellerIssueOnlineRepository @Inject constructor(private val db: GitHubDataBase, private val service: Service): OnlineRepository<List<GitHubIssue>, TellerIssueOnlineRepository.GetIssuesRequirement, List<GitHubIssue>>() {
 
     class GetIssuesRequirement(var user: String): GetCacheRequirements{
@@ -40,7 +42,7 @@ class TellerIssueOnlineRepository @Inject constructor(private val db: GitHubData
         return db.gitHubIssueDAO().getAllIssues()
     }
 
-    override fun saveCache(cache: List<GitHubIssue>, requirements: GetIssuesRequirement) {
+    public override fun saveCache(cache: List<GitHubIssue>, requirements: GetIssuesRequirement) {
         for (issues in cache){
             db.gitHubIssueDAO().insertIssue(issues)
         }

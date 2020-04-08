@@ -1,4 +1,4 @@
-package com.example.androidtraining.ui_test.di_test
+package com.example.androidtraining.di_test
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModelProvider

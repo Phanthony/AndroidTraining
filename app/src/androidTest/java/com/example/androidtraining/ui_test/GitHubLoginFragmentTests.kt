@@ -12,9 +12,9 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import com.example.androidtraining.GitHubViewModel
 import com.example.androidtraining.MainActivity
 import com.example.androidtraining.R
+import com.example.androidtraining.di_test.DiGraphRule
 import com.example.androidtraining.service.GitHubLoginResponse
 import com.example.androidtraining.service.GitHubLoginResult
-import com.example.androidtraining.ui_test.di_test.DiGraphRule
 import com.levibostian.recyclerviewmatcher.RecyclerViewMatcher.Companion.recyclerViewWithId
 import com.levibostian.teller.repository.OnlineRepository
 import com.levibostian.teller.testing.extensions.initState

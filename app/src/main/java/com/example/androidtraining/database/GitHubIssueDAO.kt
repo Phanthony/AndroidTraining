@@ -20,4 +20,6 @@ interface GitHubIssueDAO {
     @Query("SELECT * FROM Issue_Table")
     fun getAllIssues(): Observable<List<GitHubIssue>>
 
+    @Query("SELECT COUNT(*) FROM Issue_Table")
+    fun getIssueCount(): Int
 }
